@@ -1,3 +1,5 @@
+/// image_2d.metal
+
 /// Compute linear index for a 2D coordinate given a pitch (stride) in pixels.
 inline uint index_of(uint2 xy, uint pitch_px) { return xy.y * pitch_px + xy.x; }
 
@@ -124,14 +126,6 @@ struct layout_bgra
 	inline float4 from_rgba(float4 c) const { return float4(c.z, c.y, c.x, c.w); }
 };
 
-/// Image2D wrapper type providing texture sampling and channel layout
-/// abstraction. Works for float4 or half4 storage transparently.
-///
-/// Example:
-/// ```metal
-/// Image2D<float4> tex { incoming, p.inPitch, uint2(p.width, p.height) };
-/// float4 c = tex.sampleLinear(uv);
-/// ```
 template <typename Storage, typename Layout = layout_rgba>
 struct image_2d
 {
@@ -140,79 +134,94 @@ struct image_2d
 	uint2 size_px;
 	Layout layout;
 
-	/// Read at integer coords.
 	inline float4 read(uint2 xy) const
 	{
 		xy = clamp_xy(xy, size_px);
 		return layout.to_rgba((float4)data[index_of(xy, pitch_px)]);
 	}
 
-	/// Write at integer coords.
 	inline void write(uint2 xy, float4 c)
 	{
 		xy = clamp_xy(xy, size_px);
 		data[index_of(xy, pitch_px)] = (Storage)layout.from_rgba(c);
 	}
 
-	/// Sample nearest at normalized UV.
 	inline float4 sample_nearest(float2 uv) const
 	{
 		uint2 xy = clamp_xy(uint2(pixel_coord(uv, size_px) + 0.5f), size_px);
 		return layout.to_rgba((float4)data[index_of(xy, pitch_px)]);
 	}
 
-	/// Sample bilinear at normalized UV.
 	inline float4 sample_linear(float2 uv) const
 	{
 		return layout.to_rgba(
 			image_read_linear(data, pitch_px, size_px, uv));
 	}
 
-	    /// Sample bilinear with repeat addressing.
-    inline float4 sample_linear_repeat(float2 uv) const
-    {
-        float2 uv_wrapped = fract(uv); // wrap into [0,1)
-        return layout.to_rgba(
-            image_read_linear(data, pitch_px, size_px, uv_wrapped));
-    }
+	inline float4 sample_linear_repeat(float2 uv) const
+	{
+		float2 uv_wrapped = fract(uv);
+		return layout.to_rgba(
+			image_read_linear(data, pitch_px, size_px, uv_wrapped));
+	}
 
-    /// Sample nearest with repeat addressing.
-    inline float4 sample_nearest_repeat(float2 uv) const
-    {
-        float2 uv_wrapped = fract(uv); // wrap into [0,1)
-        uint2 xy = clamp_xy(uint2(pixel_coord(uv_wrapped, size_px) + 0.5f), size_px);
-        return layout.to_rgba((float4)data[index_of(xy, pitch_px)]);
-    }
+	inline float4 sample_nearest_repeat(float2 uv) const
+	{
+		float2 uv_wrapped = fract(uv);
+		uint2 xy = clamp_xy(uint2(pixel_coord(uv_wrapped, size_px) + 0.5f), size_px);
+		return layout.to_rgba((float4)data[index_of(xy, pitch_px)]);
+	}
 
-    /// Sample bilinear with mirror addressing.
-    inline float4 sample_linear_mirror(float2 uv) const
-    {
-        float2 uv_mirrored = abs(fract(uv * 0.5f) * 2.0f - 1.0f); // mirror repeat
+	inline float4 sample_linear_mirror(float2 uv) const
+	{
+		float2 uv_mirrored = abs(fract(uv * 0.5f) * 2.0f - 1.0f);
 		uv_mirrored.x = 1.0 - uv_mirrored.x;
 		uv_mirrored.y = 1.0 - uv_mirrored.y;
-        return layout.to_rgba(
-            image_read_linear(data, pitch_px, size_px, float2(uv_mirrored.x, uv_mirrored.y)));
-    }
+		return layout.to_rgba(
+			image_read_linear(data, pitch_px, size_px, float2(uv_mirrored.x, uv_mirrored.y)));
+	}
 
-    /// Sample nearest with mirror addressing.
-    inline float4 sample_nearest_mirror(float2 uv) const
-    {
-        float2 uv_mirrored = abs(fract(uv * 0.5f) * 2.0f - 1.0f); // mirror repeat
+	inline float4 sample_nearest_mirror(float2 uv) const
+	{
+		float2 uv_mirrored = abs(fract(uv * 0.5f) * 2.0f - 1.0f);
 		uv_mirrored.y = 1.0 - uv_mirrored.y;
-        uint2 xy = clamp_xy(uint2(pixel_coord(uv_mirrored, size_px) + 0.5f), size_px);
-        return layout.to_rgba((float4)data[index_of(xy, pitch_px)]);
-    }
+		uint2 xy = clamp_xy(uint2(pixel_coord(uv_mirrored, size_px) + 0.5f), size_px);
+		return layout.to_rgba((float4)data[index_of(xy, pitch_px)]);
+	}
 
-
-	/// Read without bounds check.
 	inline float4 read_unchecked(uint2 xy) const
 	{
 		return layout.to_rgba((float4)data[index_of(xy, pitch_px)]);
 	}
 
-	/// Write without bounds check.
 	inline void write_unchecked(uint2 xy, float4 c)
 	{
 		data[index_of(xy, pitch_px)] = (Storage)layout.from_rgba(c);
+	}
+
+	inline float4 sample_linear_bias(float2 uv, float bias) const
+	{
+		float b = clamp(bias, 0.0f, 4.0f);
+		int r = (int)floor(pow(2.0f, b));
+		float2 texel = 1.0f / float2(size_px);
+		if (r <= 0)
+			return sample_linear_repeat(uv);
+		float sigma = max(1.0f, float(r)) * 0.5f;
+		float two_sigma2 = 2.0f * sigma * sigma;
+		float4 sum_c = float4(0.0f);
+		float sum_w = 0.0f;
+		for (int y = -r; y <= r; ++y)
+		{
+			for (int x = -r; x <= r; ++x)
+			{
+				float d2 = float(x * x + y * y);
+				float w = exp(-d2 / two_sigma2);
+				float2 off = float2(float(x) * texel.x, float(y) * texel.y);
+				float4 c = sample_linear_repeat(uv + off);
+				sum_c += c * w;
+				sum_w += w;
+			}
+		}
+		return sum_c / max(sum_w, 1e-6f);
 	}
 };
