@@ -1,4 +1,4 @@
-/// image_2d.metal
+#include <cuda_runtime.h>
 
 /// Compute linear index for a 2D coordinate given a pitch (stride) in pixels.
 inline uint index_of(uint2 xy, uint pitch_px) { return xy.y * pitch_px + xy.x; }
@@ -24,7 +24,7 @@ inline float4 image_read(device const half4 *data, uint pitch_px, uint2 size_px,
 						 uint2 xy)
 {
 	xy = clamp_xy(xy, size_px);
-	return float4(data[index_of(xy, pitch_px)]);
+	return make_float4(data[index_of(xy, pitch_px)]);
 }
 
 /// Write a float4 pixel to memory (float4 storage).

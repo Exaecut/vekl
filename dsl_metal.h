@@ -1,34 +1,66 @@
+// dsl_metal.h
+#pragma once
+
 #include <metal_stdlib>
 using namespace metal;
 
-// ---------- address spaces and qualifiers ----------
-#define restrict                       __restrict
+// -----------------------------------------------------------------------------
+// Keywords and Address Spaces
+// -----------------------------------------------------------------------------
 
-// explicit address-space helpers for symmetry with CUDA side
-#define device_ptr(T)                   device T*
-#define device_cptr(T)                  device const T*
-#define constant_ref(T)                 constant T&
-#define threadgroup_mem                 threadgroup
-#define thread_local                    thread
+#define kernel          kernel
+#define device          device
+#define constant        constant
+#define threadgroup_mem threadgroup
+#define thread_local    thread
+#define restrict        __restrict
+#define restrict_ptr    __restrict
 
-// ---------- parameter helpers ----------
-#define param_dev_ro(T, name, slot)     device_cptr(T) name [[buffer(slot)]]
-#define param_dev_rw(T, name, slot)     device_ptr(T) name [[buffer(slot)]]
-#define param_dev_wo(T, name, slot)     device_ptr(T) name [[buffer(slot)]]
-#define param_dev_cbuf(T, name, slot)       constant_ref(T) name [[buffer(slot)]]
+// internal helper macros for address space
+#define device_ptr(T)   device T*
+#define device_cptr(T)  device const T*
+#define constant_ref(T) constant T&
 
-// ---------- thread id bridging ----------
-#define thread_pos_param(name)          uint2 name [[thread_position_in_grid]]
-#define thread_pos_init(name)           /* no-op on Metal */
+// -----------------------------------------------------------------------------
+// Scalar Types
+// -----------------------------------------------------------------------------
 
-// ---------- barriers ----------
-#define threadgroup_barrier_all()       threadgroup_barrier(mem_flags::mem_threadgroup)
+// Metal supports uint, uchar, ushort natively via metal namespace.
+// Ensure global scope visibility if needed (though using namespace metal handles it).
+typedef unsigned int uint;
 
-// ---------- constructors to match CUDA naming on Metal ----------
-static inline float2 make_float2(float x, float y)                { return float2(x, y); }
-static inline float3 make_float3(float x, float y, float z)       { return float3(x, y, z); }
-static inline float4 make_float4(float x, float y, float z, float w){ return float4(x, y, z, w); }
+// -----------------------------------------------------------------------------
+// Vector Types
+// -----------------------------------------------------------------------------
 
-static inline uint2  make_uint2(uint x, uint y)                   { return uint2(x, y); }
-static inline uint3  make_uint3(uint x, uint y, uint z)           { return uint3(x, y, z); }
-static inline uint4  make_uint4(uint x, uint y, uint z, uint w)   { return uint4(x, y, z, w); }
+// Metal provides native types: float2, float3, float4, uint2, etc.
+// They support .xyzw, .rgba, constructors, and math operators natively.
+// No extra definition required.
+
+// -----------------------------------------------------------------------------
+// Kernel Parameter Macros
+// -----------------------------------------------------------------------------
+
+// Map macros to Metal buffer attribute syntax
+#define param_dev_ro(T, name, s)   device_cptr(T) name [[buffer(s)]]
+#define param_dev_rw(T, name, s)   device_ptr(T) name [[buffer(s)]]
+#define param_dev_wo(T, name, s)   device_ptr(T) name [[buffer(s)]]
+#define param_dev_cbuf(T, name, s) constant_ref(T) name [[buffer(s)]]
+
+// -----------------------------------------------------------------------------
+// Thread Position & Synchronization Macros
+// -----------------------------------------------------------------------------
+
+// Metal puts the thread position in the argument list
+#define thread_pos_param(name) uint2 name [[thread_position_in_grid]]
+
+// No initialization logic needed inside the body (already passed as arg)
+#define thread_pos_init(name)
+
+#define threadgroup_barrier_all() threadgroup_barrier(mem_flags::mem_threadgroup)
+
+// -----------------------------------------------------------------------------
+// Helpers
+// -----------------------------------------------------------------------------
+
+// Metal overloads abs() for floats natively.
