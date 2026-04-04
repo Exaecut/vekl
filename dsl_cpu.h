@@ -1,0 +1,175 @@
+#pragma once
+
+// DSL CPU Backend — compiled by host C++ compiler (MSVC / Clang) via cc crate.
+// Emulates GPU execution model with sequential per-pixel dispatch.
+// No STL, no heap, no exceptions. SIMD auto-vectorization friendly.
+//
+// The kernel is compiled as a static inline function. The build system generates
+// an extern "C" dispatch wrapper that loops (y outer, x inner) calling the kernel
+// for each pixel. After inlining, the compiler sees a tight vectorizable loop.
+
+#include <math.h>
+#include <stdint.h>
+
+#define kernel              static inline
+#define constant            const
+#define threadgroup_mem     static
+#define thread_local
+#define restrict_ptr
+#define restrict
+
+#define device
+
+typedef unsigned int   uint;
+typedef unsigned char  uchar;
+typedef unsigned short ushort;
+
+#ifndef M_PI_F
+#define M_PI_F 3.14159265358979323846f
+#endif
+
+#define param_dev_ro(T, name, s)   const T * __restrict name
+#define param_dev_rw(T, name, s)   T * __restrict name
+#define param_dev_wo(T, name, s)   T * __restrict name
+#define param_dev_cbuf(T, name, s) const T name
+
+#define thread_pos_param(name)
+#define thread_pos_init(name) uint2 name = dispatch_id()
+
+#define threadgroup_barrier_all()
+
+static unsigned int __cpu_gid_x;
+static unsigned int __cpu_gid_y;
+static unsigned int __cpu_dispatch_w;
+static unsigned int __cpu_dispatch_h;
+
+struct float2;
+struct float3;
+struct float4;
+struct uint2;
+
+struct float2 {
+    float x, y;
+    float2() : x(0), y(0) {}
+    float2(float s) : x(s), y(s) {}
+    float2(float x_, float y_) : x(x_), y(y_) {}
+    explicit float2(uint2 v);
+};
+
+struct float3 {
+    float x, y, z;
+    float3() : x(0), y(0), z(0) {}
+    float3(float s) : x(s), y(s), z(s) {}
+    float3(float x_, float y_, float z_) : x(x_), y(y_), z(z_) {}
+};
+
+struct float4 {
+    union { float x; float r; };
+    union { float y; float g; };
+    union { float z; float b; };
+    union { float w; float a; };
+    float4() : x(0), y(0), z(0), w(0) {}
+    float4(float s) : x(s), y(s), z(s), w(s) {}
+    float4(float x_, float y_, float z_, float w_) : x(x_), y(y_), z(z_), w(w_) {}
+    float4(float3 v, float w_) : x(v.x), y(v.y), z(v.z), w(w_) {}
+    float3 xyz() const { return float3(x, y, z); }
+};
+
+struct uint2 {
+    unsigned int x, y;
+    uint2() : x(0), y(0) {}
+    uint2(unsigned int s) : x(s), y(s) {}
+    uint2(unsigned int x_, unsigned int y_) : x(x_), y(y_) {}
+    uint2(int x_, int y_) : x((unsigned int)x_), y((unsigned int)y_) {}
+    uint2(float x_, float y_) : x((unsigned int)x_), y((unsigned int)y_) {}
+    explicit uint2(float2 v);
+};
+
+inline float2::float2(uint2 v) : x((float)v.x), y((float)v.y) {}
+inline uint2::uint2(float2 v) : x((unsigned int)v.x), y((unsigned int)v.y) {}
+
+/// Unified dispatch API — the ONLY way to access invocation coordinates.
+/// GPU: maps to threadIdx/blockIdx computation.
+/// CPU: reads from dispatch loop variables set by the generated wrapper.
+inline uint2 dispatch_id()   { return uint2(__cpu_gid_x, __cpu_gid_y); }
+inline uint2 dispatch_size() { return uint2(__cpu_dispatch_w, __cpu_dispatch_h); }
+
+// float2 operators
+inline float2 operator+(float2 a, float2 b) { return float2(a.x + b.x, a.y + b.y); }
+inline float2 operator-(float2 a, float2 b) { return float2(a.x - b.x, a.y - b.y); }
+inline float2 operator*(float2 a, float2 b) { return float2(a.x * b.x, a.y * b.y); }
+inline float2 operator/(float2 a, float2 b) { return float2(a.x / b.x, a.y / b.y); }
+inline float2 operator+(float2 a, float s) { return float2(a.x + s, a.y + s); }
+inline float2 operator-(float2 a, float s) { return float2(a.x - s, a.y - s); }
+inline float2 operator*(float2 a, float s) { return float2(a.x * s, a.y * s); }
+inline float2 operator/(float2 a, float s) { return float2(a.x / s, a.y / s); }
+inline float2 operator+(float s, float2 a) { return float2(s + a.x, s + a.y); }
+inline float2 operator-(float s, float2 a) { return float2(s - a.x, s - a.y); }
+inline float2 operator*(float s, float2 a) { return float2(s * a.x, s * a.y); }
+inline float2 operator/(float s, float2 a) { return float2(s / a.x, s / a.y); }
+inline float2 operator-(float2 a) { return float2(-a.x, -a.y); }
+
+inline float2& operator+=(float2& a, float2 b) { a.x += b.x; a.y += b.y; return a; }
+inline float2& operator-=(float2& a, float2 b) { a.x -= b.x; a.y -= b.y; return a; }
+inline float2& operator*=(float2& a, float2 b) { a.x *= b.x; a.y *= b.y; return a; }
+inline float2& operator/=(float2& a, float2 b) { a.x /= b.x; a.y /= b.y; return a; }
+inline float2& operator*=(float2& a, float s) { a.x *= s; a.y *= s; return a; }
+inline float2& operator/=(float2& a, float s) { a.x /= s; a.y /= s; return a; }
+
+// float3 operators
+inline float3 operator+(float3 a, float3 b) { return float3(a.x + b.x, a.y + b.y, a.z + b.z); }
+inline float3 operator-(float3 a, float3 b) { return float3(a.x - b.x, a.y - b.y, a.z - b.z); }
+inline float3 operator*(float3 a, float3 b) { return float3(a.x * b.x, a.y * b.y, a.z * b.z); }
+inline float3 operator*(float3 a, float s) { return float3(a.x * s, a.y * s, a.z * s); }
+inline float3 operator*(float s, float3 a) { return float3(s * a.x, s * a.y, s * a.z); }
+inline float3 operator/(float3 a, float s) { return float3(a.x / s, a.y / s, a.z / s); }
+inline float3 operator-(float3 a) { return float3(-a.x, -a.y, -a.z); }
+
+// float4 operators
+inline float4 operator+(float4 a, float4 b) { return float4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
+inline float4 operator-(float4 a, float4 b) { return float4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
+inline float4 operator*(float4 a, float4 b) { return float4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w); }
+inline float4 operator/(float4 a, float4 b) { return float4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w); }
+inline float4 operator+(float4 a, float s) { return float4(a.x + s, a.y + s, a.z + s, a.w + s); }
+inline float4 operator-(float4 a, float s) { return float4(a.x - s, a.y - s, a.z - s, a.w - s); }
+inline float4 operator*(float4 a, float s) { return float4(a.x * s, a.y * s, a.z * s, a.w * s); }
+inline float4 operator/(float4 a, float s) { return float4(a.x / s, a.y / s, a.z / s, a.w / s); }
+inline float4 operator*(float s, float4 a) { return float4(s * a.x, s * a.y, s * a.z, s * a.w); }
+inline float4 operator/(float s, float4 a) { return float4(s / a.x, s / a.y, s / a.z, s / a.w); }
+inline float4 operator-(float4 a) { return float4(-a.x, -a.y, -a.z, -a.w); }
+
+inline float4& operator+=(float4& a, float4 b) { a.x += b.x; a.y += b.y; a.z += b.z; a.w += b.w; return a; }
+inline float4& operator-=(float4& a, float4 b) { a.x -= b.x; a.y -= b.y; a.z -= b.z; a.w -= b.w; return a; }
+inline float4& operator*=(float4& a, float s) { a.x *= s; a.y *= s; a.z *= s; a.w *= s; return a; }
+inline float4& operator/=(float4& a, float s) { a.x /= s; a.y /= s; a.z /= s; a.w /= s; return a; }
+inline float4& operator/=(float4& a, float4 b) { a.x /= b.x; a.y /= b.y; a.z /= b.z; a.w /= b.w; return a; }
+
+// uint2 operators
+inline uint2 operator+(uint2 a, uint2 b) { return uint2(a.x + b.x, a.y + b.y); }
+inline uint2 operator-(uint2 a, uint2 b) { return uint2(a.x - b.x, a.y - b.y); }
+
+// Scalar math
+inline float abs(float a) { return fabsf(a); }
+inline float min(float a, float b) { return fminf(a, b); }
+inline float max(float a, float b) { return fmaxf(a, b); }
+
+inline float clamp(float v, float lo, float hi) { return fminf(fmaxf(v, lo), hi); }
+inline int   clamp(int v, int lo, int hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+inline float mix(float a, float b, float t) { return a + (b - a) * t; }
+inline float fract(float v) { return v - floorf(v); }
+
+// Vector math
+inline float2 floor(float2 v) { return float2(floorf(v.x), floorf(v.y)); }
+inline float2 fract(float2 v) { return float2(fract(v.x), fract(v.y)); }
+inline float2 abs(float2 v) { return float2(fabsf(v.x), fabsf(v.y)); }
+inline float2 clamp(float2 v, float lo, float hi) { return float2(clamp(v.x, lo, hi), clamp(v.y, lo, hi)); }
+inline float2 min(float2 a, float2 b) { return float2(fminf(a.x, b.x), fminf(a.y, b.y)); }
+inline float2 max(float2 a, float2 b) { return float2(fmaxf(a.x, b.x), fmaxf(a.y, b.y)); }
+inline float2 mix(float2 a, float2 b, float t) { return a + (b - a) * t; }
+
+inline float4 clamp(float4 v, float lo, float hi) {
+    return float4(clamp(v.x, lo, hi), clamp(v.y, lo, hi), clamp(v.z, lo, hi), clamp(v.w, lo, hi));
+}
+inline float4 mix(float4 a, float4 b, float t) { return a + (b - a) * t; }
+inline float4 abs(float4 v) { return float4(fabsf(v.x), fabsf(v.y), fabsf(v.z), fabsf(v.w)); }

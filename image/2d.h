@@ -1,4 +1,4 @@
-#include <cuda_runtime.h>
+#pragma once
 
 /// Compute linear index for a 2D coordinate given a pitch (stride) in pixels.
 inline uint index_of(uint2 xy, uint pitch_px) { return xy.y * pitch_px + xy.x; }
@@ -12,39 +12,43 @@ inline uint2 clamp_xy(uint2 xy, uint2 size_px)
 }
 
 /// Read a float4 pixel from memory (float4 storage).
-inline float4 image_read(device const float4 *data, uint pitch_px,
+inline float4 image_read(const float4 *data, uint pitch_px,
 						 uint2 size_px, uint2 xy)
 {
 	xy = clamp_xy(xy, size_px);
 	return data[index_of(xy, pitch_px)];
 }
 
+#ifdef USE_HALF_PRECISION
 /// Read a float4 pixel from memory (half4 storage).
-inline float4 image_read(device const half4 *data, uint pitch_px, uint2 size_px,
+inline float4 image_read(const half4 *data, uint pitch_px, uint2 size_px,
 						 uint2 xy)
 {
 	xy = clamp_xy(xy, size_px);
 	return make_float4(data[index_of(xy, pitch_px)]);
 }
+#endif
 
 /// Write a float4 pixel to memory (float4 storage).
-inline void image_write(device float4 *data, uint pitch_px, uint2 size_px,
+inline void image_write(float4 *data, uint pitch_px, uint2 size_px,
 						uint2 xy, float4 c)
 {
 	xy = clamp_xy(xy, size_px);
 	data[index_of(xy, pitch_px)] = c;
 }
 
+#ifdef USE_HALF_PRECISION
 /// Write a float4 pixel to memory (half4 storage).
-inline void image_write(device half4 *data, uint pitch_px, uint2 size_px,
+inline void image_write(half4 *data, uint pitch_px, uint2 size_px,
 						uint2 xy, float4 c)
 {
 	xy = clamp_xy(xy, size_px);
 	data[index_of(xy, pitch_px)] = half4(c);
 }
+#endif
 
 /// Read bilinear-interpolated float4 pixel from memory (float4 storage).
-inline float4 image_read_linear(device const float4 *data, uint pitch_px,
+inline float4 image_read_linear(const float4 *data, uint pitch_px,
 								uint2 size_px, float2 uv)
 {
 	float2 p = pixel_coord(uv, size_px);
@@ -66,8 +70,9 @@ inline float4 image_read_linear(device const float4 *data, uint pitch_px,
 	return mix(cx0, cx1, f.y);
 }
 
+#ifdef USE_HALF_PRECISION
 /// Read bilinear-interpolated float4 pixel from memory (half4 storage).
-inline float4 image_read_linear(device const half4 *data, uint pitch_px,
+inline float4 image_read_linear(const half4 *data, uint pitch_px,
 								uint2 size_px, float2 uv)
 {
 	float2 p = pixel_coord(uv, size_px);
@@ -88,21 +93,24 @@ inline float4 image_read_linear(device const half4 *data, uint pitch_px,
 	float4 cx1 = mix(c01, c11, f.x);
 	return mix(cx0, cx1, f.y);
 }
+#endif
 
-/// Weighted mix that correctly handles alpha (like Porter–Duff "over").
+/// Weighted mix that correctly handles alpha (Porter-Duff "over").
 inline float4 weighted_mix(float4 a, float4 b, float t)
 {
-	float ow = a.w * (1.0 - t);
+	float ow = a.w * (1.0f - t);
 	float iw = b.w * t;
 	float new_a = ow + iw;
-	float recip = new_a != 0.0 ? 1.0 / new_a : 0.0;
+	float recip = new_a != 0.0f ? 1.0f / new_a : 0.0f;
 
-	float3 rgb = (a.xyz * ow + b.xyz * iw) * recip;
-	return float4(rgb, new_a);
+	float rx = (a.x * ow + b.x * iw) * recip;
+	float ry = (a.y * ow + b.y * iw) * recip;
+	float rz = (a.z * ow + b.z * iw) * recip;
+	return float4(rx, ry, rz, new_a);
 }
-/// Helpers to convert between float4 and storage types
+
+/// Helpers to convert between float4 and storage types.
 inline float4 to_float4(float4 v) { return v; }
-inline float4 to_float4(half4 v) { return float4(v); }
 
 template <typename T>
 inline T from_float4(float4 v);
@@ -110,10 +118,14 @@ inline T from_float4(float4 v);
 template <>
 inline float4 from_float4<float4>(float4 v) { return v; }
 
+#ifdef USE_HALF_PRECISION
+inline float4 to_float4(half4 v) { return float4(v); }
+
 template <>
 inline half4 from_float4<half4>(float4 v) { return half4(v); }
+#endif
 
-/// Layout policies
+/// Layout policies.
 struct layout_rgba
 {
 	inline float4 to_rgba(float4 c) const { return c; }
@@ -129,7 +141,7 @@ struct layout_bgra
 template <typename Storage, typename Layout = layout_rgba>
 struct image_2d
 {
-	device Storage *data;
+	Storage *data;
 	uint pitch_px;
 	uint2 size_px;
 	Layout layout;
@@ -175,8 +187,8 @@ struct image_2d
 	inline float4 sample_linear_mirror(float2 uv) const
 	{
 		float2 uv_mirrored = abs(fract(uv * 0.5f) * 2.0f - 1.0f);
-		uv_mirrored.x = 1.0 - uv_mirrored.x;
-		uv_mirrored.y = 1.0 - uv_mirrored.y;
+		uv_mirrored.x = 1.0f - uv_mirrored.x;
+		uv_mirrored.y = 1.0f - uv_mirrored.y;
 		return layout.to_rgba(
 			image_read_linear(data, pitch_px, size_px, float2(uv_mirrored.x, uv_mirrored.y)));
 	}
@@ -184,7 +196,7 @@ struct image_2d
 	inline float4 sample_nearest_mirror(float2 uv) const
 	{
 		float2 uv_mirrored = abs(fract(uv * 0.5f) * 2.0f - 1.0f);
-		uv_mirrored.y = 1.0 - uv_mirrored.y;
+		uv_mirrored.y = 1.0f - uv_mirrored.y;
 		uint2 xy = clamp_xy(uint2(pixel_coord(uv_mirrored, size_px) + 0.5f), size_px);
 		return layout.to_rgba((float4)data[index_of(xy, pitch_px)]);
 	}

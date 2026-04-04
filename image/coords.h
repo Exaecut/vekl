@@ -1,3 +1,5 @@
+#pragma once
+
 /// Compute normalized texture coordinates (UV) from thread grid position.
 inline float2 tex_coord(uint2 gid, uint2 size_px)
 {
@@ -14,13 +16,10 @@ inline float2 pixel_coord(float2 uv, uint2 size_px)
 /// `aspect` is width / height (to preserve aspect ratio).
 inline float2 rotate_uv(float2 uv, float angle, float aspect)
 {
-    // Shift to center
-    float2 centered = uv - 0.5;
+    float2 centered = uv - 0.5f;
 
-    // Correct aspect ratio
     centered.x *= aspect;
 
-    // Rotation matrix
     float c = cos(angle);
     float s = sin(angle);
     float2 rotated = float2(
@@ -28,34 +27,28 @@ inline float2 rotate_uv(float2 uv, float angle, float aspect)
         s * centered.x + c * centered.y
     );
 
-    // Undo aspect correction
     rotated.x /= aspect;
 
-    // Shift back
-    return rotated + 0.5;
+    return rotated + 0.5f;
 }
 
 /// Scale normalized UV around center (0.5, 0.5).
 inline float2 scale_uv(float2 uv, float2 scale)
 {
-    // Shift to center
-    float2 centered = uv - 0.5;
-
-    // Apply scaling
+    float2 centered = uv - 0.5f;
     centered *= scale;
-
-    // Shift back
-    return centered + 0.5;
+    return centered + 0.5f;
 }
 
-/// Overload for uniform scale
+/// Overload for uniform scale.
 inline float2 scale_uv(float2 uv, float scale)
 {
     return scale_uv(uv, float2(scale, scale));
 }
 
+/// Correct UV for non-square aspect ratio.
 inline float2 uniform_aspect_ratio(float2 uv, uint2 size_px)
 {
     float aspect = float(size_px.x) / float(size_px.y);
-    return scale_uv(uv, float2(aspect, 1.0));
+    return scale_uv(uv, float2(aspect, 1.0f));
 }

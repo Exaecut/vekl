@@ -5,6 +5,5 @@
 #elif defined(__METAL_VERSION__)
     #include "dsl_metal.h"
 #else
-    // Fallback to CUDA DSL if no known backend is specified
-    #include "dsl_cuda.h"
+    #include "dsl_cpu.h"
 #endif
