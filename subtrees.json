@@ -1,0 +1,16 @@
+{
+    "subtrees": [
+        {
+            "name": "vekl",
+            "prefix": "vekl",
+            "url": "https://github.com/Exaecut/vekl.git",
+            "branch": "main"
+        },
+        {
+            "name": "prgpu",
+            "prefix": "prgpu",
+            "url": "https://github.com/exaecut/prgpu.git",
+            "branch": "main"
+        }
+    ]
+}
