@@ -11,11 +11,11 @@
         "${env:CUDA_PATH}/include/",
         "${env:CUDA_PATH}/include/**",
         "${workspaceFolder}/**",
-        "${workspaceFolder}/shaders/utils/",
-        "${workspaceFolder}/shaders/utils/**",
+        "${workspaceFolder}/vekl/",
+        "${workspaceFolder}/vekl/**",
     ],
     "C_Cpp.default.defines": ["__CUDACC__"],
     "files.associations": {
-        "*.shader": "cuda-cpp"
+        "*.vekl": "cuda-cpp"
     }
 }

@@ -1,5 +1,4 @@
-#include "common.h"
-#include "types.h"
+#include "vekl/vekl.h"
 
 struct VignetteParams {
     float strength;
@@ -7,11 +6,11 @@ struct VignetteParams {
 };
 
 kernel void vignette(
-    param_dev_ro(pixel_format, outgoing, 0),
-    param_dev_ro(pixel_format, incoming, 1),
-    param_dev_wo(pixel_format, dest, 2),
-    param_dev_cbuf(TransitionParams, tp, 3),
-    param_dev_cbuf(VignetteParams, up, 4)
+    param_ro(pixel_format, outgoing, 0),
+    param_ro(pixel_format, incoming, 1),
+    param_wo(pixel_format, dest, 2),
+    param_cbuf(TransitionParams, tp, 3),
+    param_cbuf(VignetteParams, up, 4)
 ) {
     uint2 gid = dispatch_id();
 

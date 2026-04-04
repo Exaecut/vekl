@@ -47,8 +47,12 @@ def has_changes_in_prefix(prefix: str) -> bool:
     return bool(result.stdout.strip())
 
 
+def subtree_exists(prefix: str) -> bool:
+    return Path(prefix).exists() and Path(prefix).is_dir()
+
+
 def subtree_add(st):
-    if has_changes_in_prefix(st["prefix"]):
+    if has_changes_in_prefix(st["prefix"]) and Path(st["prefix"]).is_dir():
         print(
             f"Error: subtree '{st['name']}' has local changes. Commit or stash them first."
         )
@@ -69,7 +73,12 @@ def subtree_add(st):
 
 
 def subtree_pull(st):
-    if has_changes_in_prefix(st["prefix"]):
+    if not subtree_exists(st["prefix"]):
+        print(f"Subtree '{st['name']}' not found → performing initial add")
+        subtree_add(st)
+        return
+
+    if has_changes_in_prefix(st["prefix"]) and Path(st["prefix"]).is_dir():
         print(
             f"Error: subtree '{st['name']}' has local changes. Commit or stash them first."
         )
@@ -90,7 +99,7 @@ def subtree_pull(st):
 
 
 def subtree_push(st):
-    if has_changes_in_prefix(st["prefix"]):
+    if has_changes_in_prefix(st["prefix"]) and Path(st["prefix"]).is_dir():
         print(
             f"Error: subtree '{st['name']}' has local changes. Commit or stash them first."
         )
