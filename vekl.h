@@ -1,8 +1,17 @@
 #pragma once
-#include "dsl.h"
+
+#if defined(__CUDACC__) || defined(__cuda_cuda_h__)
+    #include "vekl_cuda.h"
+#elif defined(__METAL_VERSION__)
+    #include "vekl_metal.h"
+#else
+    #include "vekl_cpu.h"
+#endif
 
 #ifndef UTILS_COMMON
 #define UTILS_COMMON
+
+#include "types.h"
 
 // Maths
 #include "maths/transform.h"
