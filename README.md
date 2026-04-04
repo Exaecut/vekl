@@ -1,9 +1,6 @@
-# exaecut/shader-utils
+# VEKL (Video Effects Kernel Language)
 
-Metal-first shader utility pack with a tiny DSL that makes Metal-style kernels
-compile on both Apple Metal and the CUDA runtime. Write once in a Metal-like
-dialect, choose backend with a single macro, and keep your math, image, and SDF
-helpers identical across platforms.
+VEKL is an open-source, cross-platform compute kernel foundation designed for developing high-performance video effects and transitions for Adobe plugins and similar pipelines. It abstracts the differences between CUDA, Metal, and CPU backend execution into a single, unified, Metal-like DSL.
 
 > License: Apache-2.0
 
