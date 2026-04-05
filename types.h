@@ -16,7 +16,7 @@
     typedef float4 half4;
 #endif
 
-struct TransitionParams {
+struct FrameParams {
     uint out_pitch;
     uint in_pitch;
     uint dest_pitch;

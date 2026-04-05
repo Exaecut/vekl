@@ -50,7 +50,7 @@ vekl/
 ├─ vekl_cuda.h           # CUDA shims (NVRTC compatible)
 ├─ vekl_metal.h          # Metal shims (native MSL mapping)
 ├─ vekl_cpu.h            # CPU shims (sequential dispatch)
-├─ types.h               # pixel_format, TransitionParams
+├─ types.h               # pixel_format, FrameParams
 ├─ LICENSE               # Apache-2.0
 ├─ README.md             # This file
 ├─ filters/
@@ -113,7 +113,7 @@ struct TintParams {
 kernel void apply_tint(
     param_ro(pixel_format, src, 0),
     param_wo(pixel_format, dst, 1),
-    param_cbuf(TransitionParams, img, 2),
+    param_cbuf(FrameParams, img, 2),
     param_cbuf(TintParams, tint, 3)
 ) {
     uint2 gid = dispatch_id();
@@ -204,7 +204,7 @@ generate an `extern "C"` dispatch wrapper that loops over pixels:
 extern "C" void dispatch_tint(
     const pixel_format* src,
     pixel_format* dst,
-    const TransitionParams* img,
+    const FrameParams* img,
     const TintParams* tint,
     uint width, uint height
 ) {
