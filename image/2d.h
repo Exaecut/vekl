@@ -119,7 +119,9 @@ template <>
 inline float4 from_float4<float4>(float4 v) { return v; }
 
 #ifdef USE_HALF_PRECISION
-inline float4 to_float4(half4 v) { return float4(v); }
+// C-style cast required on CUDA: float4(v) only calls constructors of float4,
+// not half4::operator float4(). (float4)v invokes the conversion operator.
+inline float4 to_float4(half4 v) { return (float4)v; }
 
 template <>
 inline half4 from_float4<half4>(float4 v) { return half4(v); }
