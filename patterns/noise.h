@@ -1,13 +1,11 @@
 #pragma once
 
-static inline float fractf(float x) { return x - floor(x); }
-
 static inline float2 noise_hash2(float2 p, float2 seed)
 {
 	float3 p3 = fract(float3(p.x, p.y, dot(p, float2(0.5f, 0.25f))) +
 					  float3(seed.x, seed.y, seed.x * 1.37f + seed.y * 2.11f));
 
-	p3 += dot(p3, p3.yzx + 19.19f);
+	p3 += dot(p3, float3(p3.y, p3.z, p3.x) + 19.19f);
 	float2 h = fract(float2((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y));
 	return h * 2.0f - 1.0f;
 }
@@ -70,7 +68,7 @@ static inline float noise_rand(float2 p, float2 seed)
 	float3 q = fract(float3(dot(p, float2(127.1f, 311.7f)) + dot(seed, float2(269.5f, 183.3f)),
 							dot(p, float2(269.5f, 183.3f)) + dot(seed, float2(127.1f, 311.7f)),
 							dot(p, float2(419.2f, 371.9f)) + dot(seed, float2(419.2f, 371.9f))));
-	q += dot(q, q.yzx + 19.19f);
+	q += dot(q, float3(q.y, q.z, q.x) + 19.19f);
 	return fract((q.x + q.y) * q.z);
 }
 

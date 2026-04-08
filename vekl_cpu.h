@@ -124,6 +124,15 @@ inline float3 operator*(float3 a, float s) { return float3(a.x * s, a.y * s, a.z
 inline float3 operator*(float s, float3 a) { return float3(s * a.x, s * a.y, s * a.z); }
 inline float3 operator/(float3 a, float s) { return float3(a.x / s, a.y / s, a.z / s); }
 inline float3 operator-(float3 a) { return float3(-a.x, -a.y, -a.z); }
+inline float3 operator+(float3 a, float s) { return float3(a.x + s, a.y + s, a.z + s); }
+inline float3 operator+(float s, float3 a) { return float3(s + a.x, s + a.y, s + a.z); }
+inline float3 operator-(float3 a, float s) { return float3(a.x - s, a.y - s, a.z - s); }
+
+inline float3& operator+=(float3& a, float3 b) { a.x += b.x; a.y += b.y; a.z += b.z; return a; }
+inline float3& operator+=(float3& a, float s) { a.x += s; a.y += s; a.z += s; return a; }
+inline float3& operator-=(float3& a, float3 b) { a.x -= b.x; a.y -= b.y; a.z -= b.z; return a; }
+inline float3& operator*=(float3& a, float s) { a.x *= s; a.y *= s; a.z *= s; return a; }
+inline float3& operator/=(float3& a, float s) { a.x /= s; a.y /= s; a.z /= s; return a; }
 
 // float4 operators
 inline float4 operator+(float4 a, float4 b) { return float4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
@@ -167,6 +176,17 @@ inline float2 clamp(float2 v, float lo, float hi) { return float2(clamp(v.x, lo,
 inline float2 min(float2 a, float2 b) { return float2(fminf(a.x, b.x), fminf(a.y, b.y)); }
 inline float2 max(float2 a, float2 b) { return float2(fmaxf(a.x, b.x), fmaxf(a.y, b.y)); }
 inline float2 mix(float2 a, float2 b, float t) { return a + (b - a) * t; }
+
+inline float dot(float2 a, float2 b) { return a.x * b.x + a.y * b.y; }
+inline float dot(float3 a, float3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+inline float length(float2 v) { return sqrtf(v.x * v.x + v.y * v.y); }
+inline float2 normalize(float2 v) { float l = length(v); return l != 0.0f ? v / l : float2(0.0f); }
+
+inline float3 floor(float3 v) { return float3(floorf(v.x), floorf(v.y), floorf(v.z)); }
+inline float3 fract(float3 v) { return float3(fract(v.x), fract(v.y), fract(v.z)); }
+inline float3 abs(float3 v) { return float3(fabsf(v.x), fabsf(v.y), fabsf(v.z)); }
+inline float3 clamp(float3 v, float lo, float hi) { return float3(clamp(v.x, lo, hi), clamp(v.y, lo, hi), clamp(v.z, lo, hi)); }
+inline float3 mix(float3 a, float3 b, float t) { return a + (b - a) * t; }
 
 inline float4 clamp(float4 v, float lo, float hi) {
     return float4(clamp(v.x, lo, hi), clamp(v.y, lo, hi), clamp(v.z, lo, hi), clamp(v.w, lo, hi));

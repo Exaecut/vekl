@@ -112,7 +112,16 @@ inline dsl_float3 operator*(dsl_float3 a, dsl_float3 b) { return dsl_float3(a.x 
 inline dsl_float3 operator*(dsl_float3 a, float s) { return dsl_float3(a.x * s, a.y * s, a.z * s); }
 inline dsl_float3 operator*(float s, dsl_float3 a) { return dsl_float3(s * a.x, s * a.y, s * a.z); }
 inline dsl_float3 operator/(dsl_float3 a, float s) { return dsl_float3(a.x / s, a.y / s, a.z / s); }
+inline dsl_float3 operator+(dsl_float3 a, float s) { return dsl_float3(a.x + s, a.y + s, a.z + s); }
+inline dsl_float3 operator+(float s, dsl_float3 a) { return dsl_float3(s + a.x, s + a.y, s + a.z); }
+inline dsl_float3 operator-(dsl_float3 a, float s) { return dsl_float3(a.x - s, a.y - s, a.z - s); }
 inline dsl_float3 operator-(dsl_float3 a) { return dsl_float3(-a.x, -a.y, -a.z); }
+
+inline dsl_float3& operator+=(dsl_float3& a, dsl_float3 b) { a.x += b.x; a.y += b.y; a.z += b.z; return a; }
+inline dsl_float3& operator+=(dsl_float3& a, float s) { a.x += s; a.y += s; a.z += s; return a; }
+inline dsl_float3& operator-=(dsl_float3& a, dsl_float3 b) { a.x -= b.x; a.y -= b.y; a.z -= b.z; return a; }
+inline dsl_float3& operator*=(dsl_float3& a, float s) { a.x *= s; a.y *= s; a.z *= s; return a; }
+inline dsl_float3& operator/=(dsl_float3& a, float s) { a.x /= s; a.y /= s; a.z /= s; return a; }
 
 // dsl_float4 operators
 inline dsl_float4 operator+(dsl_float4 a, dsl_float4 b) { return dsl_float4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
@@ -156,6 +165,17 @@ inline dsl_float2 clamp(dsl_float2 v, float lo, float hi) { return dsl_float2(cl
 inline dsl_float2 min(dsl_float2 a, dsl_float2 b) { return dsl_float2(::fminf(a.x, b.x), ::fminf(a.y, b.y)); }
 inline dsl_float2 max(dsl_float2 a, dsl_float2 b) { return dsl_float2(::fmaxf(a.x, b.x), ::fmaxf(a.y, b.y)); }
 inline dsl_float2 mix(dsl_float2 a, dsl_float2 b, float t) { return a + (b - a) * t; }
+
+inline float dot(dsl_float2 a, dsl_float2 b) { return a.x * b.x + a.y * b.y; }
+inline float dot(dsl_float3 a, dsl_float3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+inline float length(dsl_float2 v) { return ::sqrtf(v.x * v.x + v.y * v.y); }
+inline dsl_float2 normalize(dsl_float2 v) { float l = length(v); return l != 0.0f ? v / l : dsl_float2(0.0f); }
+
+inline dsl_float3 floor(dsl_float3 v) { return dsl_float3(::floorf(v.x), ::floorf(v.y), ::floorf(v.z)); }
+inline dsl_float3 fract(dsl_float3 v) { return dsl_float3(fract(v.x), fract(v.y), fract(v.z)); }
+inline dsl_float3 abs(dsl_float3 v) { return dsl_float3(::fabsf(v.x), ::fabsf(v.y), ::fabsf(v.z)); }
+inline dsl_float3 clamp(dsl_float3 v, float lo, float hi) { return dsl_float3(clamp(v.x, lo, hi), clamp(v.y, lo, hi), clamp(v.z, lo, hi)); }
+inline dsl_float3 mix(dsl_float3 a, dsl_float3 b, float t) { return a + (b - a) * t; }
 
 inline dsl_float4 clamp(dsl_float4 v, float lo, float hi) {
     return dsl_float4(clamp(v.x, lo, hi), clamp(v.y, lo, hi), clamp(v.z, lo, hi), clamp(v.w, lo, hi));
