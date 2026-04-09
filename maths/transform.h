@@ -1,3 +1,5 @@
+#pragma once
+
 struct Transform
 {
 	float2 position;

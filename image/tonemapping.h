@@ -1,97 +1,78 @@
 #pragma once
 
-namespace tonemapping
+inline float srgb_to_linear_fast(float x)
 {
-	inline float srgb_to_linear_1(float x)
-	{
-		return (x <= 0.04045f) ? (x * (1.0f / 12.92f)) : pow((x + 0.055f) * (1.0f / 1.055f), 2.4f);
-	}
-	inline float3 srgb_to_linear(float3 c)
-	{
-		return float3(srgb_to_linear_1(c.r),
-					  srgb_to_linear_1(c.g),
-					  srgb_to_linear_1(c.b));
-	}
-	inline float linear_to_srgb_1(float x)
-	{
-		return (x <= 0.0031308f) ? (x * 12.92f) : (1.055f * pow(x, 1.0f / 2.4f) - 0.055f);
-	}
-	inline float3 linear_to_srgb(float3 c)
-	{
-		return float3(linear_to_srgb_1(c.r),
-					  linear_to_srgb_1(c.g),
-					  linear_to_srgb_1(c.b));
-	}
+	float lo = x * (1.0f / 12.92f);
+	float hi = pow((x + 0.055f) * (1.0f / 1.055f), 2.4f);
+	float t = saturate((x - 0.04045f) * 5957.8977f);
+	return mix(lo, hi, t);
+}
 
-	// Exposure - multiply scene linear by 2^EV
-	inline float3 apply_exposure_linear(float3 rgb_linear, float EV)
-	{
-		return rgb_linear * exp2(EV); // exp2(EV) == 2^EV
-	}
+inline float3 srgb_to_linear_fast(float3 c)
+{
+	return float3(srgb_to_linear_fast(c.x),
+				  srgb_to_linear_fast(c.y),
+				  srgb_to_linear_fast(c.z));
+}
 
-	// Filmic tonemap (ACES fitted) - good default for LDR targets
-	inline float3 aces_filmic(float3 x)
-	{
-		const float a = 2.51f;
-		const float b = 0.03f;
-		const float c = 2.43f;
-		const float d = 0.59f;
-		const float e = 0.14f;
-		return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
-	}
+inline float linear_to_srgb_fast(float x)
+{
+	float lo = x * 12.92f;
+	float hi = 1.055f * pow(x, 1.0f / 2.4f) - 0.055f;
+	float t = saturate((x - 0.0031308f) * 323.2649f);
+	return mix(lo, hi, t);
+}
 
-	// Full path for an sRGB source to sRGB output
-	inline float4 exposure_srgb_pipeline(float4 src_srgba, float EV, bool premultiplied)
-	{
-		float3 rgb = src_srgba.rgb;
-		float a = src_srgba.a;
+inline float3 linear_to_srgb_fast(float3 c)
+{
+	return float3(linear_to_srgb_fast(c.x),
+				  linear_to_srgb_fast(c.y),
+				  linear_to_srgb_fast(c.z));
+}
 
-		if (premultiplied && a > 0.0f)
-		{
-			rgb /= a; // un-premultiply for correct color ops
-		}
+inline float3 aces_filmic(float3 x)
+{
+	float3 num = x * (2.51f * x + 0.03f);
+	float3 den = x * (2.43f * x + 0.59f) + 0.14f;
+	return saturate(num * (1.0f / den));
+}
 
-		// sRGB -> linear
-		float3 lin = srgb_to_linear(rgb);
+inline float3 apply_exposure(float3 rgb, float EV)
+{
+	float scale = exp2(EV);
+	return rgb * scale;
+}
 
-		// exposure in linear
-		float3 lin_exposed = apply_exposure_linear(lin, EV);
+inline float4 tonemap_srgb(float4 src, float EV, float premul)
+{
+	float3 rgb = float3(src.x, src.y, src.z);
+	float a = src.w;
 
-		// optional tone map for LDR output
-		float3 lin_mapped = aces_filmic(lin_exposed);
+	float inv_a = (a > 0.0f) ? (1.0f / a) : 0.0f;
+	rgb = mix(rgb, rgb * inv_a, premul);
 
-		// linear -> sRGB
-		float3 out_rgb = linear_to_srgb(lin_mapped);
+	float3 lin = srgb_to_linear_fast(rgb);
+	float3 exposed = apply_exposure(lin, EV);
+	float3 mapped = aces_filmic(exposed);
+	float3 out_rgb = linear_to_srgb_fast(mapped);
 
-		if (premultiplied)
-		{
-			out_rgb *= a; // re-premultiply
-		}
+	out_rgb = mix(out_rgb, out_rgb * a, premul);
 
-		return float4(out_rgb, a);
-	}
+	return float4(out_rgb.x, out_rgb.y, out_rgb.z, a);
+}
 
-	inline float4 exposure_linear_pipeline(float4 src_rgba_linear, float EV, bool premultiplied)
-	{
-		float3 rgb = src_rgba_linear.rgb;
-		float a = src_rgba_linear.a;
+inline float4 tonemap_linear(float4 src, float EV, float premul)
+{
+	float3 rgb = float3(src.x, src.y, src.z);
+	float a = src.w;
 
-		if (premultiplied && a > 0.0f)
-		{
-			rgb /= a; // un-premultiply for correct color ops
-		}
+	float inv_a = (a > 0.0f) ? (1.0f / a) : 0.0f;
+	rgb = mix(rgb, rgb * inv_a, premul);
 
-		// exposure in linear
-		float3 lin_exposed = apply_exposure_linear(rgb, EV); // * 2^EV
+	float3 exposed = apply_exposure(rgb, EV);
+	float3 mapped = aces_filmic(exposed);
 
-		// optional tone map for LDR targets - keep if you want display-referred output
-		float3 lin_mapped = aces_filmic(lin_exposed);
+	mapped = mix(mapped, mapped * a, premul);
 
-		if (premultiplied)
-		{
-			lin_mapped *= a; // re-premultiply
-		}
-
-		return float4(lin_mapped, a);
-	}
+	return float4(mapped.x, mapped.y, mapped.z, a);
 }

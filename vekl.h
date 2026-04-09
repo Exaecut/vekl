@@ -1,25 +1,35 @@
 #pragma once
 
-#if defined(__CUDACC__) || defined(__cuda_cuda_h__)
-    #include "vekl_cuda.h"
-#elif defined(__METAL_VERSION__)
-    #include "vekl_metal.h"
-#else
-    #include "vekl_cpu.h"
+#if !defined(VEKL_CPU) && !defined(VEKL_CUDA) && !defined(VEKL_METAL) && !defined(VEKL_OPENCL)
+    #if defined(__CUDACC__) || defined(__CUDA_ARCH__)
+        #define VEKL_CUDA
+    #elif defined(__METAL_VERSION__)
+        #define VEKL_METAL
+    #elif defined(__OPENCL_VERSION__)
+        #define VEKL_OPENCL
+    #else
+        #define VEKL_CPU
+    #endif
 #endif
 
-#ifndef UTILS_COMMON
-#define UTILS_COMMON
+#if defined(VEKL_CPU)
+    #include "backend/cpu/primitives.h"
+#elif defined(VEKL_CUDA)
+    #include "backend/cuda/primitives.h"
+#elif defined(VEKL_METAL)
+    #include "backend/metal/primitives.h"
+#elif defined(VEKL_OPENCL)
+    #include "backend/opencl/primitives.h"
+#else
+    #error "Unknown VEKL backend. Define one of: VEKL_CPU, VEKL_CUDA, VEKL_METAL, VEKL_OPENCL"
+#endif
 
 #include "types.h"
 
-// Maths
 #include "maths/transform.h"
 #include "maths/trigonometry.h"
 #include "maths/easing.h"
 
-// Image manipulation
 #include "image/coords.h"
 #include "image/2d.h"
-
-#endif // UTILS_COMMON
+#include "image/tonemapping.h"
