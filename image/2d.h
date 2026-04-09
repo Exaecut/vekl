@@ -11,6 +11,121 @@ inline uint2 clamp_xy(uint2 xy, uint2 size_px)
 	return uint2(x, y);
 }
 
+// ---------------------------------------------------------------------------
+// CPU path: format-aware image_2d that natively supports U8, U16, F32 storage.
+// read()/write() convert to/from RGBA float4 transparently.
+// The Layout template parameter is accepted for source compatibility but
+// ignored — channel reordering is handled internally based on format.
+// ---------------------------------------------------------------------------
+
+#ifdef VEKL_CPU
+
+template <typename Storage, typename Layout = layout_rgba>
+struct image_2d
+{
+	void *data;
+	uint pitch_px;
+	uint2 size_px;
+
+	image_2d() : data(nullptr), pitch_px(0), size_px(0) {}
+	image_2d(void *d, uint p, uint2 s) : data(d), pitch_px(p), size_px(s) {}
+	image_2d(const void *d, uint p, uint2 s) : data(const_cast<void*>(d)), pitch_px(p), size_px(s) {}
+
+	inline float4 read(uint2 xy) const
+	{
+		xy = clamp_xy(xy, size_px);
+		return pixel_load(data, pitch_px, xy);
+	}
+
+	inline void write(uint2 xy, float4 c)
+	{
+		xy = clamp_xy(xy, size_px);
+		pixel_store(data, pitch_px, xy, c);
+	}
+
+	inline float4 sample_nearest(float2 uv) const
+	{
+		uint2 xy = clamp_xy(uint2(uv * float2(size_px) + 0.5f), size_px);
+		return pixel_load(data, pitch_px, xy);
+	}
+
+	inline float4 sample_linear(float2 uv) const
+	{
+		return pixel_load_linear(data, pitch_px, size_px, uv);
+	}
+
+	inline float4 sample_linear_repeat(float2 uv) const
+	{
+		float2 uv_wrapped = fract(uv);
+		return pixel_load_linear(data, pitch_px, size_px, uv_wrapped);
+	}
+
+	inline float4 sample_nearest_repeat(float2 uv) const
+	{
+		float2 uv_wrapped = fract(uv);
+		uint2 xy = clamp_xy(uint2(uv_wrapped * float2(size_px) + 0.5f), size_px);
+		return pixel_load(data, pitch_px, xy);
+	}
+
+	inline float4 sample_linear_mirror(float2 uv) const
+	{
+		float2 uv_mirrored = abs(fract(uv * 0.5f) * 2.0f - 1.0f);
+		uv_mirrored.x = 1.0f - uv_mirrored.x;
+		uv_mirrored.y = 1.0f - uv_mirrored.y;
+		return pixel_load_linear(data, pitch_px, size_px, uv_mirrored);
+	}
+
+	inline float4 sample_nearest_mirror(float2 uv) const
+	{
+		float2 uv_mirrored = abs(fract(uv * 0.5f) * 2.0f - 1.0f);
+		uv_mirrored.y = 1.0f - uv_mirrored.y;
+		uint2 xy = clamp_xy(uint2(uv_mirrored * float2(size_px) + 0.5f), size_px);
+		return pixel_load(data, pitch_px, xy);
+	}
+
+	inline float4 read_unchecked(uint2 xy) const
+	{
+		return pixel_load(data, pitch_px, xy);
+	}
+
+	inline void write_unchecked(uint2 xy, float4 c)
+	{
+		pixel_store(data, pitch_px, xy, c);
+	}
+
+	inline float4 sample_linear_bias(float2 uv, float bias) const
+	{
+		float b = clamp(bias, 0.0f, 4.0f);
+		int r = (int)floor(pow(2.0f, b));
+		float2 texel = 1.0f / float2(size_px);
+		if (r <= 0)
+			return sample_linear_repeat(uv);
+		float sigma = max(1.0f, float(r)) * 0.5f;
+		float two_sigma2 = 2.0f * sigma * sigma;
+		float4 sum_c = float4(0.0f);
+		float sum_w = 0.0f;
+		for (int y = -r; y <= r; ++y)
+		{
+			for (int x = -r; x <= r; ++x)
+			{
+				float d2 = float(x * x + y * y);
+				float w = exp(-d2 / two_sigma2);
+				float2 off = float2(float(x) * texel.x, float(y) * texel.y);
+				float4 c = sample_linear_repeat(uv + off);
+				sum_c += c * w;
+				sum_w += w;
+			}
+		}
+		return sum_c / max(sum_w, 1e-6f);
+	}
+};
+
+// ---------------------------------------------------------------------------
+// GPU path: typed Storage* access with Layout-based channel reordering.
+// ---------------------------------------------------------------------------
+
+#else
+
 /// Read a float4 pixel from memory (float4 storage).
 inline float4 image_read(const float4 *data, uint pitch_px,
 						 uint2 size_px, uint2 xy)
@@ -119,8 +234,6 @@ template <>
 inline float4 from_float4<float4>(float4 v) { return v; }
 
 #ifdef USE_HALF_PRECISION
-// C-style cast required on CUDA: float4(v) only calls constructors of float4,
-// not half4::operator float4(). (float4)v invokes the conversion operator.
 inline float4 to_float4(half4 v) { return (float4)v; }
 
 template <>
@@ -239,3 +352,5 @@ struct image_2d
 		return sum_c / max(sum_w, 1e-6f);
 	}
 };
+
+#endif // VEKL_CPU

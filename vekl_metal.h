@@ -37,3 +37,9 @@ typedef unsigned int uint;
 #define thread_pos_init(name)
 
 #define threadgroup_barrier_all() threadgroup_barrier(mem_flags::mem_threadgroup)
+
+#ifdef USE_HALF_PRECISION
+#define format 8u
+#else
+#define format 16u
+#endif

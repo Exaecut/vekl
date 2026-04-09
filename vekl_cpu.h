@@ -1,15 +1,10 @@
 #pragma once
 
-// DSL CPU Backend — compiled by host C++ compiler (MSVC / Clang) via cc crate.
-// Emulates GPU execution model with sequential per-pixel dispatch.
-// No STL, no heap, no exceptions. SIMD auto-vectorization friendly.
-//
-// The kernel is compiled as a static inline function. The build system generates
-// an extern "C" dispatch wrapper that loops (y outer, x inner) calling the kernel
-// for each pixel. After inlining, the compiler sees a tight vectorizable loop.
+#define VEKL_CPU
 
 #include <math.h>
 #include <stdint.h>
+#include <string.h>
 
 #define kernel              static inline
 #define constant            const
@@ -38,10 +33,13 @@ typedef unsigned short ushort;
 
 #define threadgroup_barrier_all()
 
-static unsigned int __cpu_gid_x;
-static unsigned int __cpu_gid_y;
-static unsigned int __cpu_dispatch_w;
-static unsigned int __cpu_dispatch_h;
+thread_local static unsigned int __cpu_gid_x;
+thread_local static unsigned int __cpu_gid_y;
+thread_local static unsigned int __cpu_dispatch_w;
+thread_local static unsigned int __cpu_dispatch_h;
+thread_local static unsigned int __cpu_format;
+
+#define format (__cpu_format)
 
 struct float2;
 struct float3;
@@ -88,9 +86,6 @@ struct uint2 {
 inline float2::float2(uint2 v) : x((float)v.x), y((float)v.y) {}
 inline uint2::uint2(float2 v) : x((unsigned int)v.x), y((unsigned int)v.y) {}
 
-/// Unified dispatch API — the ONLY way to access invocation coordinates.
-/// GPU: maps to threadIdx/blockIdx computation.
-/// CPU: reads from dispatch loop variables set by the generated wrapper.
 inline uint2 dispatch_id()   { return uint2(__cpu_gid_x, __cpu_gid_y); }
 inline uint2 dispatch_size() { return uint2(__cpu_dispatch_w, __cpu_dispatch_h); }
 
@@ -193,3 +188,86 @@ inline float4 clamp(float4 v, float lo, float hi) {
 }
 inline float4 mix(float4 a, float4 b, float t) { return a + (b - a) * t; }
 inline float4 abs(float4 v) { return float4(fabsf(v.x), fabsf(v.y), fabsf(v.z), fabsf(v.w)); }
+
+// ---------------------------------------------------------------------------
+// Pixel format conversion: native storage ↔ float4 (RGBA working space)
+//
+// Memory layouts (After Effects / Premiere CPU buffers):
+//   U8  (format=4):  BGRA8   — 4 bytes per pixel, channels [B,G,R,A]
+//   U16 (format=8):  BGRA64  — 8 bytes per pixel, channels [B,G,R,A] u16 each
+//   F32 (format=16): RGBA128 — 16 bytes per pixel, channels [R,G,B,A] f32 each
+//
+// All load functions return RGBA float4 in [0,1] (for integer) or native range.
+// All store functions take RGBA float4 and write in native layout.
+// ---------------------------------------------------------------------------
+
+inline uint __pixel_index(uint2 xy, uint pitch_px) { return xy.y * pitch_px + xy.x; }
+
+inline float4 pixel_load(const void *data, uint pitch_px, uint2 xy) {
+    uint idx = __pixel_index(xy, pitch_px);
+    switch (__cpu_format) {
+        case 4: {
+            const uint8_t *p = static_cast<const uint8_t *>(data) + idx * 4;
+            return float4(p[2] / 255.0f, p[1] / 255.0f, p[0] / 255.0f, p[3] / 255.0f);
+        }
+        case 8: {
+            const uint16_t *p = reinterpret_cast<const uint16_t *>(static_cast<const uint8_t *>(data) + idx * 8);
+            return float4(p[2] / 65535.0f, p[1] / 65535.0f, p[0] / 65535.0f, p[3] / 65535.0f);
+        }
+        case 16: {
+            return static_cast<const float4 *>(data)[idx];
+        }
+        default: return float4(0.0f);
+    }
+}
+
+inline void pixel_store(void *data, uint pitch_px, uint2 xy, float4 c) {
+    uint idx = __pixel_index(xy, pitch_px);
+    switch (__cpu_format) {
+        case 4: {
+            uint8_t *p = static_cast<uint8_t *>(data) + idx * 4;
+            p[0] = (uint8_t)clamp(c.z * 255.0f, 0.0f, 255.0f);
+            p[1] = (uint8_t)clamp(c.y * 255.0f, 0.0f, 255.0f);
+            p[2] = (uint8_t)clamp(c.x * 255.0f, 0.0f, 255.0f);
+            p[3] = (uint8_t)clamp(c.w * 255.0f, 0.0f, 255.0f);
+            break;
+        }
+        case 8: {
+            uint16_t *p = reinterpret_cast<uint16_t *>(static_cast<uint8_t *>(data) + idx * 8);
+            p[0] = (uint16_t)clamp(c.z * 65535.0f, 0.0f, 65535.0f);
+            p[1] = (uint16_t)clamp(c.y * 65535.0f, 0.0f, 65535.0f);
+            p[2] = (uint16_t)clamp(c.x * 65535.0f, 0.0f, 65535.0f);
+            p[3] = (uint16_t)clamp(c.w * 65535.0f, 0.0f, 65535.0f);
+            break;
+        }
+        case 16: {
+            static_cast<float4 *>(data)[idx] = c;
+            break;
+        }
+    }
+}
+
+inline float4 pixel_load_linear(const void *data, uint pitch_px, uint2 size_px, float2 uv) {
+    float2 p = uv * float2(size_px) - 0.5f;
+    float2 pf = floor(p);
+    float2 f = clamp(p - pf, 0.0f, 1.0f);
+
+    int x0 = clamp((int)pf.x, 0, (int)size_px.x - 1);
+    int y0 = clamp((int)pf.y, 0, (int)size_px.y - 1);
+    int x1 = clamp(x0 + 1, 0, (int)size_px.x - 1);
+    int y1 = clamp(y0 + 1, 0, (int)size_px.y - 1);
+
+    float4 c00 = pixel_load(data, pitch_px, uint2(x0, y0));
+    float4 c10 = pixel_load(data, pitch_px, uint2(x1, y0));
+    float4 c01 = pixel_load(data, pitch_px, uint2(x0, y1));
+    float4 c11 = pixel_load(data, pitch_px, uint2(x1, y1));
+
+    float4 cx0 = mix(c00, c10, f.x);
+    float4 cx1 = mix(c01, c11, f.x);
+    return mix(cx0, cx1, f.y);
+}
+
+struct layout_rgba {};
+struct layout_bgra {};
+
+typedef void pixel;

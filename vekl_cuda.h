@@ -36,6 +36,12 @@ typedef unsigned short ushort;
 
 #define threadgroup_barrier_all() __syncthreads()
 
+#ifdef USE_HALF_PRECISION
+#define format 8u
+#else
+#define format 16u
+#endif
+
 struct dsl_float2;
 struct dsl_float3;
 struct dsl_float4;
