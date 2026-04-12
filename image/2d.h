@@ -41,6 +41,7 @@ struct image_2d
 
 	image_2d() : data(nullptr), pitch_px(0), size_px(0) {}
 	image_2d(device Storage *d, uint p, uint2 s) : data(d), pitch_px(p), size_px(s) {}
+	image_2d(device Storage *d, uint p, uint2 s, Layout l) : data(d), pitch_px(p), size_px(s), layout(l) {}
 
 	inline float4 read(uint2 xy) const
 	{

@@ -1,12 +1,12 @@
 #pragma once
 
 #ifndef VEKL_CUDA
-#define VEKL_CUDA
+    #define VEKL_CUDA
 #endif
 
 #define kernel          extern "C" __global__
-#define constant        const
-#define device
+#define constant        __constant__
+#define device          
 #define threadgroup_mem __shared__
 #define thread          /* CUDA: no address-space qualifier for thread-local */
 #define restrict_ptr    __restrict__
