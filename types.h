@@ -35,10 +35,6 @@ struct VeklLogBuffer {
 	VeklLogEntry entries[VEKL_LOG_CAPACITY];
 };
 
-// noop_logging_channel - shared zero-overhead no-op across all backends.
-// No user-defined constructor so it is aggregate-initializable:
-//   noop_logging_channel l = {"channel"};
-// Metal requires constant address space for string literals.
 struct noop_logging_channel {
 #if defined(VEKL_METAL)
 	const constant char* channel_name;

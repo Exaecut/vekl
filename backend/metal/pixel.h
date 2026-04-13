@@ -17,7 +17,7 @@ struct layout_bgra {
 };
 
 struct layout_vuya {
-	// VUYA → RGBA (BT.601)
+
 	inline float4 to_rgba(float4 c) const {
 		float v = c.x - 0.5f;
 		float u = c.y - 0.5f;
@@ -29,7 +29,7 @@ struct layout_vuya {
 			c.w
 		);
 	}
-	// RGBA → VUYA (BT.601)
+
 	inline float4 from_rgba(float4 c) const {
 		float y = 0.299f * c.x + 0.587f * c.y + 0.114f * c.z;
 		return float4(
@@ -42,7 +42,7 @@ struct layout_vuya {
 };
 
 struct layout_vuya709 {
-	// VUYA → RGBA (BT.709)
+
 	inline float4 to_rgba(float4 c) const {
 		float v = c.x - 0.5f;
 		float u = c.y - 0.5f;
@@ -54,7 +54,7 @@ struct layout_vuya709 {
 			c.w
 		);
 	}
-	// RGBA → VUYA (BT.709)
+
 	inline float4 from_rgba(float4 c) const {
 		float y = 0.2126f * c.x + 0.7152f * c.y + 0.0722f * c.z;
 		return float4(
@@ -67,7 +67,7 @@ struct layout_vuya709 {
 };
 
 struct layout_auto {
-	uint layout_type; // 0=RGBA, 1=BGRA, 2=VUYA601, 3=VUYA709
+	uint layout_type;
 
 	inline float4 to_rgba(float4 c) const {
 		switch (layout_type) {

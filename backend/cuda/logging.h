@@ -8,9 +8,6 @@
 #define VEKL_BACKEND_NAME "cuda"
 #endif
 
-
-// logging_channel (debug only) - writes into the unified-memory log ring buffer.
-// Disabled when DISABLE_LOGGING is defined or DEBUG is not set.
 #if defined(DISABLE_LOGGING) || !defined(DEBUG)
 
 typedef noop_logging_channel logging_channel;
@@ -70,8 +67,6 @@ inline __device__ void __vekl_append_log(unsigned int level, const char* channel
 	__threadfence_system();
 }
 
-// Aggregate struct (no user-defined constructor) so NVRTC can initialize a
-// static __device__ instance without triggering dynamic initialization.
 struct logging_channel {
 	const char* channel_name;
 
@@ -82,15 +77,7 @@ struct logging_channel {
 	inline __device__ void error(const char* message) const { __vekl_append_log(VEKL_LOG_LEVEL_ERROR, channel_name, message); }
 };
 
-#endif // DISABLE_LOGGING || !DEBUG
+#endif
 
-// Default logging instance - compile-time constant initialization (no dynamic init).
-// Declare via aggregate init: static __device__ logging_channel l = {"channel"};
-//
-//   logging.info("...");
-//
-// Custom named channels:
-//   logging_channel blur_log = {"blur"};
-//   blur_log.warn("...");
 static __device__ logging_channel __vekl_default_log = {"default"};
 #define logging (__vekl_default_log)

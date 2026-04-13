@@ -78,14 +78,7 @@ struct logging_channel {
 	inline void error(const constant char* message) const { __vekl_append_log(VEKL_LOG_LEVEL_ERROR, channel_name, message); }
 };
 
-#endif // DISABLE_LOGGING || !DEBUG
+#endif
 
-// Default logging instance — ONE persistent object in constant Metal memory.
-// Use immediately in any kernel without any declaration:
-//   logging.info("...");
-//
-// Custom named channels:
-//   logging_channel blur_log("blur");
-//   blur_log.warn("...");
 constant logging_channel __vekl_default_log {"default"};
 #define logging (__vekl_default_log)

@@ -20,7 +20,7 @@ using namespace metal;
 #define param_dev_wo(T, name, s)   device T* name [[buffer(s)]]
 #define param_dev_cbuf(T, name, s) constant T& name [[buffer(s)]]
 
-#define thread_pos_param(name)  /* thread position injected by Metal pipeline */
+#define thread_pos_param(name)
 #define thread_pos_init(name)   uint2 name = dispatch_id()
 
 #define threadgroup_barrier_all() threadgroup_barrier(mem_flags::mem_threadgroup)

@@ -10,4 +10,3 @@
 #define log2f(x) log2(x)
 #define powf(x, y) pow(x, y)
 
-// saturate is a Metal built-in — no define needed

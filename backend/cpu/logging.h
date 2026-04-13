@@ -24,8 +24,6 @@ void host_log(unsigned int level, const char* message);
 typedef noop_logging_channel logging_channel;
 #else
 
-// Aggregate struct — no user-defined constructor.
-// Custom channels: logging_channel net_log = {"network"};  net_log.info("...");
 struct logging_channel {
 	const char* channel_name;
 
@@ -46,13 +44,7 @@ private:
 	}
 };
 
-#endif // DISABLE_LOGGING || !DEBUG
+#endif
 
-// Default logging instance
-//   logging.info("...");
-//
-// Custom named channels:
-//   logging_channel blur_pass_log = {"blur"};
-//   blur_pass_log.warn("...");
 static logging_channel __vekl_default_log = {"default"};
 #define logging (__vekl_default_log)

@@ -76,7 +76,6 @@ namespace shapes
 	{
 		float2 p = uv - center;
 
-		// rotation
 		float c = cos(angle);
 		float s = sin(angle);
 		p = float2(c * p.x - s * p.y, s * p.x + c * p.y);
