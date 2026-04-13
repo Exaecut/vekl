@@ -26,3 +26,4 @@
 #include "dispatch.h"
 #include "math.h"
 #include "pixel.h"
+#include "logging.h"

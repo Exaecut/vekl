@@ -1,5 +1,10 @@
 #pragma once
 
+// vekl/types.h is self-contained (uses only standard C types) and must be
+// included FIRST so that VeklLogLevel macros, VeklLogEntry, VeklLogBuffer and
+// FrameParams are available to backend/*/logging.h when primitives.h pulls it in.
+#include "types.h"
+
 #if !defined(VEKL_CPU) && !defined(VEKL_CUDA) && !defined(VEKL_METAL) && !defined(VEKL_OPENCL)
     #if defined(__CUDACC__) || defined(__CUDA_ARCH__)
         #define VEKL_CUDA
@@ -23,8 +28,6 @@
 #else
     #error "Unknown VEKL backend. Define one of: VEKL_CPU, VEKL_CUDA, VEKL_METAL, VEKL_OPENCL"
 #endif
-
-#include "types.h"
 
 #include "maths/transform.h"
 #include "maths/trigonometry.h"
