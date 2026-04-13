@@ -8,6 +8,7 @@ inline float3 opGlowOutline(float d, float3 glowColor, float thickness)
 
 	return glowColor * intensity;
 }
+
 inline float3 opNeonGlow(float d, float3 color, float thickness, float glowRadius)
 {
 	float dist = abs(d);
@@ -22,5 +23,3 @@ inline float3 opNeonGlow(float d, float3 color, float thickness, float glowRadiu
 
 	return result;
 }
-
-
