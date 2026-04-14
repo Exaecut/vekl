@@ -8,9 +8,15 @@
 #define VEKL_BACKEND_NAME "cuda"
 #endif
 
+// __vekl_bind_log_buffer is always defined because prepare_cuda_source()
+// injects a call to it into every kernel prologue regardless of logging state.
 #if defined(DISABLE_LOGGING) || !defined(DEBUG)
 
 typedef noop_logging_channel logging_channel;
+
+inline __device__ void __vekl_bind_log_buffer(VeklLogBuffer* buffer) {
+	(void)buffer; // no-op when logging is disabled
+}
 
 #else
 
@@ -62,9 +68,9 @@ inline __device__ void __vekl_append_log(unsigned int level, const char* channel
 	entry->message_len = message_len;
 	__vekl_copy_bytes(entry->channel, VEKL_LOG_CHANNEL_CAPACITY, channel_name, channel_len);
 	__vekl_copy_bytes(entry->message, VEKL_LOG_MESSAGE_CAPACITY, message, message_len);
-	__threadfence_system();
+	__threadfence();
 	entry->committed_sequence = sequence + 1u;
-	__threadfence_system();
+	__threadfence();
 }
 
 struct logging_channel {
@@ -79,5 +85,10 @@ struct logging_channel {
 
 #endif
 
+#if defined(DISABLE_LOGGING) || !defined(DEBUG)
+// Use a constant string literal for the noop channel — avoids a .global device variable
+#define logging (noop_logging_channel{"default"})
+#else
 static __device__ logging_channel __vekl_default_log = {"default"};
 #define logging (__vekl_default_log)
+#endif
