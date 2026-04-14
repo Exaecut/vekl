@@ -32,9 +32,12 @@ struct layout_bgra {
 
 struct layout_vuya {
 
-    inline float4 to_rgba(float4 c) const {
-        float v = c.x - 0.5f;
-        float u = c.y - 0.5f;
+    __device__ inline float4 to_rgba(float4 c) const {
+        // For 32f VUYA (format==16), chroma is already centered at 0 (range [-0.5, 0.5]).
+        // For 8u/16u VUYA, chroma is in [0,1] after normalization and needs 0.5 offset.
+        float chroma_offset = (format == 16u) ? 0.0f : 0.5f;
+        float v = c.x - chroma_offset;
+        float u = c.y - chroma_offset;
         float y = c.z;
         return float4(
             y + 1.402f * v,
@@ -44,11 +47,12 @@ struct layout_vuya {
         );
     }
 
-    inline float4 from_rgba(float4 c) const {
+    __device__ inline float4 from_rgba(float4 c) const {
+        float chroma_offset = (format == 16u) ? 0.0f : 0.5f;
         float y = 0.299f * c.x + 0.587f * c.y + 0.114f * c.z;
         return float4(
-            (c.x - y) / 1.402f + 0.5f,
-            (c.z - y) / 1.772f + 0.5f,
+            (c.x - y) / 1.402f + chroma_offset,
+            (c.z - y) / 1.772f + chroma_offset,
             y,
             c.w
         );
@@ -57,9 +61,10 @@ struct layout_vuya {
 
 struct layout_vuya709 {
 
-    inline float4 to_rgba(float4 c) const {
-        float v = c.x - 0.5f;
-        float u = c.y - 0.5f;
+    __device__ inline float4 to_rgba(float4 c) const {
+        float chroma_offset = (format == 16u) ? 0.0f : 0.5f;
+        float v = c.x - chroma_offset;
+        float u = c.y - chroma_offset;
         float y = c.z;
         return float4(
             y + 1.5748f * v,
@@ -69,11 +74,12 @@ struct layout_vuya709 {
         );
     }
 
-    inline float4 from_rgba(float4 c) const {
+    __device__ inline float4 from_rgba(float4 c) const {
+        float chroma_offset = (format == 16u) ? 0.0f : 0.5f;
         float y = 0.2126f * c.x + 0.7152f * c.y + 0.0722f * c.z;
         return float4(
-            (c.x - y) / 1.5748f + 0.5f,
-            (c.z - y) / 1.8556f + 0.5f,
+            (c.x - y) / 1.5748f + chroma_offset,
+            (c.z - y) / 1.8556f + chroma_offset,
             y,
             c.w
         );
