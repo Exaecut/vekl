@@ -12,8 +12,9 @@ inline float gaussian_weight_1d(int x, float sigma)
 	return exp(-(float(x * x)) / (2.0f * s2));
 }
 
-template <typename Image>
-inline float4 gaussian_1d(Image tex, float2 uv, float sigma, int radius, bool vertical)
+
+template <typename Storage, typename Layout = layout_rgba>
+inline float4 gaussian_1d(image_2d<const Storage, Layout> tex, float2 uv, float sigma, int radius, bool vertical)
 {
 	float2 texel_size = 1.0 / float2(tex.size_px);
 	float2 dir = vertical ? float2(0.0, 1.0) : float2(1.0, 0.0);
@@ -40,8 +41,8 @@ inline float4 gaussian_1d(Image tex, float2 uv, float sigma, int radius, bool ve
 	return sum / max(weight_sum, 1e-8);
 }
 
-template <typename Image>
-inline float4 gaussian_2d(Image tex, float2 uv, float sigma, int radius)
+template <typename Storage, typename Layout = layout_rgba>
+inline float4 gaussian_2d(image_2d<const Storage, Layout> tex, float2 uv, float sigma, int radius)
 {
 	float4 sum = float4(0.0);
 	float weight_sum = 0.0;

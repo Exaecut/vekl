@@ -1,7 +1,5 @@
 #pragma once
 
-#include "types.h"
-
 #if !defined(VEKL_CPU) && !defined(VEKL_CUDA) && !defined(VEKL_METAL) && !defined(VEKL_OPENCL)
     #if defined(__CUDACC__) || defined(__CUDA_ARCH__)
         #define VEKL_CUDA
@@ -15,13 +13,13 @@
 #endif
 
 #if defined(VEKL_CPU)
-    #include "backend/cpu/primitives.h"
+    #include "backend/cpu.h"
 #elif defined(VEKL_CUDA)
-    #include "backend/cuda/primitives.h"
+    #include "backend/cuda.h"
 #elif defined(VEKL_METAL)
-    #include "backend/metal/primitives.h"
+    #include "backend/metal.h"
 #elif defined(VEKL_OPENCL)
-    #include "backend/opencl/primitives.h"
+    #include "backend/opencl.h"
 #else
     #error "Unknown VEKL backend. Define one of: VEKL_CPU, VEKL_CUDA, VEKL_METAL, VEKL_OPENCL"
 #endif
@@ -33,3 +31,9 @@
 #include "image/coords.h"
 #include "image/2d.h"
 #include "image/tonemapping.h"
+
+#include "sdf/operators.h"
+#include "sdf/shapes.h"
+
+#include "filters/blur.h"
+#include "filters/envelope.h"

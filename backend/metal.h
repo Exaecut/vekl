@@ -1,12 +1,81 @@
 #pragma once
 
-#ifndef VEKL_KERNEL_NAME
-#define VEKL_KERNEL_NAME "unknown"
+#ifndef VEKL_METAL
+#define VEKL_METAL
 #endif
 
-#ifndef VEKL_BACKEND_NAME
-#define VEKL_BACKEND_NAME "metal"
+#include <metal_stdlib>
+using namespace metal;
+
+#define kernel          kernel
+#define device          device
+#define constant        constant
+#define threadgroup_mem threadgroup
+#define thread          thread
+#define restrict_ptr    __restrict
+#define restrict        __restrict
+
+#define param_dev_ro(T, name, s)   device const T* name [[buffer(s)]]
+#define param_dev_rw(T, name, s)   device T* name [[buffer(s)]]
+#define param_dev_wo(T, name, s)   device T* name [[buffer(s)]]
+#define param_dev_cbuf(T, name, s) constant T& name [[buffer(s)]]
+
+#define thread_pos_param(name)
+#define thread_pos_init(name)   uint2 name = dispatch_id()
+
+#define threadgroup_barrier_all() threadgroup_barrier(mem_flags::mem_threadgroup)
+
+typedef unsigned int   uint;
+typedef unsigned char  uchar;
+typedef unsigned short ushort;
+
+#ifdef USE_HALF_PRECISION
+#define VEKL_FORMAT 8u
+#else
+#define VEKL_FORMAT 16u
 #endif
+
+#define sqrtf(x)    sqrt(x)
+#define expf(x)     exp(x)
+#define exp2f(x)    exp2(x)
+#define sinf(x)     sin(x)
+#define cosf(x)     cos(x)
+#define floorf(x)   floor(x)
+#define fabsf(x)    fabs(x)
+#define fmodf(x, y) fmod(x, y)
+#define log2f(x)    log2(x)
+#define powf(x, y)  pow(x, y)
+#define fminf(x, y) fmin(x, y)
+#define fmaxf(x, y) fmax(x, y)
+
+#define VEKL_EXP2F exp2f
+#define VEKL_BACKEND_NAME "metal"
+
+#define dispatch_id()   __vekl_dispatch_id
+#define dispatch_size() __vekl_dispatch_size
+
+#define VEKL_VECTOR_TYPES_PROVIDED
+#define VEKL_MATH_PROVIDED
+
+#include "common/types.h"
+#include "common/math.h"
+#include "common/pixel.h"
+#include "common/logging.h"
+#include "common/frame/params.h"
+
+#ifdef USE_HALF_PRECISION
+typedef half4 pixel;
+#else
+typedef float4 pixel;
+#endif
+
+inline float4 pixel_load(device const pixel *data, uint pitch_px, uint2 xy, uint /*format*/) {
+	return float4(data[xy.y * pitch_px + xy.x]);
+}
+
+inline void pixel_store(device pixel *data, uint pitch_px, uint2 xy, float4 c, uint /*format*/) {
+	data[xy.y * pitch_px + xy.x] = pixel(c);
+}
 
 #if defined(DISABLE_LOGGING) || !defined(DEBUG)
 
@@ -80,5 +149,9 @@ struct logging_channel {
 
 #endif
 
+#if defined(DISABLE_LOGGING) || !defined(DEBUG)
+#define logging (noop_logging_channel{"default"})
+#else
 constant logging_channel __vekl_default_log {"default"};
-#define logging (__vekl_default_log)
+#define log (__vekl_default_log)
+#endif

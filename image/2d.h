@@ -10,7 +10,7 @@ inline uint2 clamp_xy(uint2 xy, uint2 size_px)
 }
 
 inline float4 bilinear_sample(device const pixel *data, uint pitch_px,
-							   uint2 size_px, float2 uv)
+							   uint2 size_px, float2 uv, uint format)
 {
 	float2 p = pixel_coord(uv, size_px);
 	float2 pf = floor(p);
@@ -21,10 +21,10 @@ inline float4 bilinear_sample(device const pixel *data, uint pitch_px,
 	uint2 xy01 = clamp_xy(uint2(pf.x, pf.y + 1.0f), size_px);
 	uint2 xy11 = clamp_xy(uint2(pf + 1.0f), size_px);
 
-	float4 c00 = pixel_load(data, pitch_px, xy00);
-	float4 c10 = pixel_load(data, pitch_px, xy10);
-	float4 c01 = pixel_load(data, pitch_px, xy01);
-	float4 c11 = pixel_load(data, pitch_px, xy11);
+	float4 c00 = pixel_load(data, pitch_px, xy00, format);
+	float4 c10 = pixel_load(data, pitch_px, xy10, format);
+	float4 c01 = pixel_load(data, pitch_px, xy01, format);
+	float4 c11 = pixel_load(data, pitch_px, xy11, format);
 
 	float4 cx0 = mix(c00, c10, f.x);
 	float4 cx1 = mix(c01, c11, f.x);
@@ -38,44 +38,49 @@ struct image_2d
 	uint pitch_px;
 	uint2 size_px;
 	Layout layout;
+	uint format;
 
-	image_2d() : data(nullptr), pitch_px(0), size_px(0) {}
-	image_2d(device Storage *d, uint p, uint2 s) : data(d), pitch_px(p), size_px(s) {}
-	image_2d(device Storage *d, uint p, uint2 s, Layout l) : data(d), pitch_px(p), size_px(s), layout(l) {}
+	image_2d() : data(nullptr), pitch_px(0), size_px(uint2(0, 0)), format(VEKL_FORMAT) {}
+	image_2d(device Storage *d, uint p, uint2 s)
+		: data(d), pitch_px(p), size_px(s), format(VEKL_FORMAT) {}
+	image_2d(device Storage *d, uint p, uint2 s, Layout l)
+		: data(d), pitch_px(p), size_px(s), layout(l), format(VEKL_FORMAT) {}
+	image_2d(device Storage *d, uint p, uint2 s, Layout l, uint fmt)
+		: data(d), pitch_px(p), size_px(s), layout(l), format(fmt) {}
 
 	inline float4 read(uint2 xy) const
 	{
 		xy = clamp_xy(xy, size_px);
-		return layout.to_rgba(pixel_load(data, pitch_px, xy));
+		return layout.to_rgba(pixel_load(data, pitch_px, xy, format));
 	}
 
 	inline void write(uint2 xy, float4 c)
 	{
 		xy = clamp_xy(xy, size_px);
-		pixel_store(data, pitch_px, xy, layout.from_rgba(c));
+		pixel_store(data, pitch_px, xy, layout.from_rgba(c), format);
 	}
 
 	inline float4 sample_nearest(float2 uv) const
 	{
 		uint2 xy = clamp_xy(uint2(pixel_coord(uv, size_px) + 0.5f), size_px);
-		return layout.to_rgba(pixel_load(data, pitch_px, xy));
+		return layout.to_rgba(pixel_load(data, pitch_px, xy, format));
 	}
 
 	inline float4 sample_linear(float2 uv) const
 	{
-		return layout.to_rgba(bilinear_sample(data, pitch_px, size_px, uv));
+		return layout.to_rgba(bilinear_sample(data, pitch_px, size_px, uv, format));
 	}
 
 	inline float4 sample_linear_repeat(float2 uv) const
 	{
-		return layout.to_rgba(bilinear_sample(data, pitch_px, size_px, fract(uv)));
+		return layout.to_rgba(bilinear_sample(data, pitch_px, size_px, fract(uv), format));
 	}
 
 	inline float4 sample_nearest_repeat(float2 uv) const
 	{
 		float2 uv_wrapped = fract(uv);
 		uint2 xy = clamp_xy(uint2(pixel_coord(uv_wrapped, size_px) + 0.5f), size_px);
-		return layout.to_rgba(pixel_load(data, pitch_px, xy));
+		return layout.to_rgba(pixel_load(data, pitch_px, xy, format));
 	}
 
 	inline float4 sample_linear_mirror(float2 uv) const
@@ -83,7 +88,7 @@ struct image_2d
 		float2 uv_mirrored = abs(fract(uv * 0.5f) * 2.0f - 1.0f);
 		uv_mirrored.x = 1.0f - uv_mirrored.x;
 		uv_mirrored.y = 1.0f - uv_mirrored.y;
-		return layout.to_rgba(bilinear_sample(data, pitch_px, size_px, uv_mirrored));
+		return layout.to_rgba(bilinear_sample(data, pitch_px, size_px, uv_mirrored, format));
 	}
 
 	inline float4 sample_nearest_mirror(float2 uv) const
@@ -91,17 +96,17 @@ struct image_2d
 		float2 uv_mirrored = abs(fract(uv * 0.5f) * 2.0f - 1.0f);
 		uv_mirrored.y = 1.0f - uv_mirrored.y;
 		uint2 xy = clamp_xy(uint2(pixel_coord(uv_mirrored, size_px) + 0.5f), size_px);
-		return layout.to_rgba(pixel_load(data, pitch_px, xy));
+		return layout.to_rgba(pixel_load(data, pitch_px, xy, format));
 	}
 
 	inline float4 read_unchecked(uint2 xy) const
 	{
-		return layout.to_rgba(pixel_load(data, pitch_px, xy));
+		return layout.to_rgba(pixel_load(data, pitch_px, xy, format));
 	}
 
 	inline void write_unchecked(uint2 xy, float4 c)
 	{
-		pixel_store(data, pitch_px, xy, layout.from_rgba(c));
+		pixel_store(data, pitch_px, xy, layout.from_rgba(c), format);
 	}
 
 	inline float4 sample_linear_bias(float2 uv, float bias) const

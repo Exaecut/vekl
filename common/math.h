@@ -1,21 +1,27 @@
 #pragma once
 
+#ifndef VEKL_MATH_PROVIDED
+
+#ifndef VEKL_EXP2F
+#define VEKL_EXP2F exp2f
+#endif
+
 inline float abs(float a) { return fabsf(a); }
 inline float min(float a, float b) { return fminf(a, b); }
 inline float max(float a, float b) { return fmaxf(a, b); }
 
 inline float clamp(float v, float lo, float hi) { return fminf(fmaxf(v, lo), hi); }
-inline int   clamp(int v, int lo, int hi) { return v < lo ? lo : (v > hi ? hi : v); }
 
 inline float saturate(float v) { return clamp(v, 0.0f, 1.0f); }
 inline float pow(float x, float y) { return powf(x, y); }
-inline float exp2(float x) { return expf(x * 0.6931471805599453f); }
+inline float exp2(float x) { return VEKL_EXP2F(x); }
+inline float sign(float v) { return (v > 0.0f) ? 1.0f : ((v < 0.0f) ? -1.0f : 0.0f); }
 
 inline float mix(float a, float b, float t) { return a + (b - a) * t; }
 inline float fract(float v) { return v - floorf(v); }
 inline float smoothstep(float edge0, float edge1, float x) {
-    float t = clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
-    return t * t * (3.0f - 2.0f * t);
+	float t = clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+	return t * t * (3.0f - 2.0f * t);
 }
 
 inline float2 floor(float2 v) { return float2(floorf(v.x), floorf(v.y)); }
@@ -38,10 +44,12 @@ inline float3 clamp(float3 v, float lo, float hi) { return float3(clamp(v.x, lo,
 inline float3 mix(float3 a, float3 b, float t) { return a + (b - a) * t; }
 
 inline float4 clamp(float4 v, float lo, float hi) {
-    return float4(clamp(v.x, lo, hi), clamp(v.y, lo, hi), clamp(v.z, lo, hi), clamp(v.w, lo, hi));
+	return float4(clamp(v.x, lo, hi), clamp(v.y, lo, hi), clamp(v.z, lo, hi), clamp(v.w, lo, hi));
 }
 inline float4 mix(float4 a, float4 b, float t) { return a + (b - a) * t; }
 inline float4 abs(float4 v) { return float4(fabsf(v.x), fabsf(v.y), fabsf(v.z), fabsf(v.w)); }
 
 inline float3 saturate(float3 v) { return clamp(v, 0.0f, 1.0f); }
 inline float4 saturate(float4 v) { return clamp(v, 0.0f, 1.0f); }
+
+#endif
