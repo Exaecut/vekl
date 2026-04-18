@@ -20,15 +20,13 @@ inline float gaussian_weight_1d(int x, float sigma)
 ///
 /// - Hoists the `exp()` weight computation into a thread-local cache keyed on
 ///   `(sigma, radius)` (each rayon worker has its own, no locks).
-/// - Replaces `sample_linear` (4 `pixel_load` calls per tap) by direct
-///   `read_unchecked` with signed-int clamping: since sample offsets are
-///   exact integer texel multiples of `texel_size`, the bilinear interpolation
-///   was collapsing to the nearest texel anyway — the 3 extra taps were pure
-///   waste (≥ 3× pixel_load reduction on the hot path).
+/// - Uses cheap 1D linear interpolation along the blur axis: 2 `pixel_load`s
+///   per tap (vs 1 for nearest, 4 for full bilinear). This eliminates the
+///   banding artifacts of nearest-neighbour at low radius while keeping the
+///   hot path at 50 % of full bilinear cost.
 ///
 /// Preserves the existing `gaussian_weight_1d(i, sigma)` formula and `i*3`
-/// stride, so output is bit-identical to the old path modulo FP32 rounding
-/// (well below U8 quantization).
+/// stride, so output differs from nearest only in the smooth sub-pixel blend.
 template <typename Storage, typename Layout = layout_rgba>
 inline float4 gaussian_1d(image_2d<const Storage, Layout> tex, float2 uv, float sigma, int radius, bool vertical)
 {
@@ -50,17 +48,25 @@ inline float4 gaussian_1d(image_2d<const Storage, Layout> tex, float2 uv, float 
 	}
 
 	float2 pf = pixel_coord(uv, tex.size_px);
-	int base_x = int(pf.x + 0.5f);
-	int base_y = int(pf.y + 0.5f);
+	int ix = int(floor(pf.x));
+	int iy = int(floor(pf.y));
+	float frac = vertical ? (pf.y - float(iy)) : (pf.x - float(ix));
 
 	const int sz_x = int(tex.size_px.x);
 	const int sz_y = int(tex.size_px.y);
-	const int dx = vertical ? 0 : 1;
-	const int dy = vertical ? 1 : 0;
 
-	int cx = base_x < 0 ? 0 : (base_x >= sz_x ? sz_x - 1 : base_x);
-	int cy = base_y < 0 ? 0 : (base_y >= sz_y ? sz_y - 1 : base_y);
-	float4 sum = tex.read_unchecked(uint2((unsigned)cx, (unsigned)cy)) * _gk_weights[0];
+	// Clamp-to-edge helpers returning unsigned for read_unchecked
+	auto cx = [sz_x](int x) -> unsigned { return (unsigned)(x < 0 ? 0 : (x >= sz_x ? sz_x - 1 : x)); };
+	auto cy = [sz_y](int y) -> unsigned { return (unsigned)(y < 0 ? 0 : (y >= sz_y ? sz_y - 1 : y)); };
+
+	// Step along the blur axis
+	const int d0 = vertical ? 0 : 1;
+	const int d1 = vertical ? 1 : 0;
+
+	// Centre tap — 1D lerp along blur axis
+	float4 s0 = tex.read_unchecked(uint2(cx(ix),      cy(iy)));
+	float4 s1 = tex.read_unchecked(uint2(cx(ix + d0), cy(iy + d1)));
+	float4 sum = mix(s0, s1, frac) * _gk_weights[0];
 	float weight_sum = _gk_weights[0];
 
 	const int half = radius / 3;
@@ -69,20 +75,19 @@ inline float4 gaussian_1d(image_2d<const Storage, Layout> tex, float2 uv, float 
 		const float w = _gk_weights[i];
 		const int off = i * 3;
 
-		int px1 = base_x + dx * off;
-		int py1 = base_y + dy * off;
-		int px2 = base_x - dx * off;
-		int py2 = base_y - dy * off;
+		// +offset tap: lerp between base and base+1 along blur axis
+		int ax = ix + d0 * off;
+		int ay = iy + d1 * off;
+		float4 a0 = tex.read_unchecked(uint2(cx(ax),      cy(ay)));
+		float4 a1 = tex.read_unchecked(uint2(cx(ax + d0), cy(ay + d1)));
 
-		px1 = px1 < 0 ? 0 : (px1 >= sz_x ? sz_x - 1 : px1);
-		py1 = py1 < 0 ? 0 : (py1 >= sz_y ? sz_y - 1 : py1);
-		px2 = px2 < 0 ? 0 : (px2 >= sz_x ? sz_x - 1 : px2);
-		py2 = py2 < 0 ? 0 : (py2 >= sz_y ? sz_y - 1 : py2);
+		// -offset tap
+		int bx = ix - d0 * off;
+		int by = iy - d1 * off;
+		float4 b0 = tex.read_unchecked(uint2(cx(bx),      cy(by)));
+		float4 b1 = tex.read_unchecked(uint2(cx(bx + d0), cy(by + d1)));
 
-		float4 c1 = tex.read_unchecked(uint2((unsigned)px1, (unsigned)py1));
-		float4 c2 = tex.read_unchecked(uint2((unsigned)px2, (unsigned)py2));
-
-		sum += (c1 + c2) * w;
+		sum += (mix(a0, a1, frac) + mix(b0, b1, frac)) * w;
 		weight_sum += 2.0f * w;
 	}
 

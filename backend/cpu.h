@@ -56,6 +56,8 @@ thread_local static volatile unsigned int __cpu_format;
 static noinline uint2 dispatch_id()   { return uint2(__cpu_gid_x, __cpu_gid_y); }
 static noinline uint2 dispatch_size() { return uint2(__cpu_dispatch_w, __cpu_dispatch_h); }
 
+static inline float rsqrt(float x) { return 1.0f / sqrtf(x); }
+
 typedef void pixel;
 
 // format parameter replaces the volatile TLS __cpu_format in the inner loop.

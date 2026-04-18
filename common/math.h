@@ -14,6 +14,8 @@ inline float clamp(float v, float lo, float hi) { return fminf(fmaxf(v, lo), hi)
 
 inline float saturate(float v) { return clamp(v, 0.0f, 1.0f); }
 inline float pow(float x, float y) { return powf(x, y); }
+inline float sin(float x) { return sinf(x); }
+inline float2 sin(float2 a) { return float2(sinf(a.x), sinf(a.y)); }
 inline float exp2(float x) { return VEKL_EXP2F(x); }
 inline float sign(float v) { return (v > 0.0f) ? 1.0f : ((v < 0.0f) ? -1.0f : 0.0f); }
 
