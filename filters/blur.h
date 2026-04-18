@@ -14,7 +14,7 @@ inline float gaussian_weight_1d(int x, float sigma)
 
 #ifdef VEKL_CPU
 
-#define VEKL_GAUSSIAN_WEIGHT_CACHE 48
+#define VEKL_GAUSSIAN_WEIGHT_CACHE 64
 
 /// Separable 1D Gaussian convolution — **CPU fast path**.
 ///
@@ -25,8 +25,9 @@ inline float gaussian_weight_1d(int x, float sigma)
 ///   banding artifacts of nearest-neighbour at low radius while keeping the
 ///   hot path at 50 % of full bilinear cost.
 ///
-/// Preserves the existing `gaussian_weight_1d(i, sigma)` formula and `i*3`
-/// stride, so output differs from nearest only in the smooth sub-pixel blend.
+/// Samples at stride-2 (offsets 0, 2, 4, …) with weights evaluated at the
+/// actual pixel offset, producing a faithful Gaussian shape with half the
+/// texture fetches of stride-1.
 template <typename Storage, typename Layout = layout_rgba>
 inline float4 gaussian_1d(image_2d<const Storage, Layout> tex, float2 uv, float sigma, int radius, bool vertical)
 {
@@ -34,14 +35,14 @@ inline float4 gaussian_1d(image_2d<const Storage, Layout> tex, float2 uv, float 
 	thread_local static float _gk_sigma = -1.0f;
 	thread_local static int   _gk_radius = -1;
 
-	int n_weights = radius / 3 + 1;
+	int n_weights = radius / 2 + 1;
 	if (n_weights > VEKL_GAUSSIAN_WEIGHT_CACHE) {
 		n_weights = VEKL_GAUSSIAN_WEIGHT_CACHE;
 	}
 
 	if (sigma != _gk_sigma || radius != _gk_radius) {
 		for (int i = 0; i < n_weights; ++i) {
-			_gk_weights[i] = gaussian_weight_1d(i, sigma);
+			_gk_weights[i] = gaussian_weight_1d(i * 2, sigma);
 		}
 		_gk_sigma = sigma;
 		_gk_radius = radius;
@@ -69,11 +70,11 @@ inline float4 gaussian_1d(image_2d<const Storage, Layout> tex, float2 uv, float 
 	float4 sum = mix(s0, s1, frac) * _gk_weights[0];
 	float weight_sum = _gk_weights[0];
 
-	const int half = radius / 3;
+	const int half = radius / 2;
 	for (int i = 1; i <= half; ++i)
 	{
 		const float w = _gk_weights[i];
-		const int off = i * 3;
+		const int off = i * 2;
 
 		// +offset tap: lerp between base and base+1 along blur axis
 		int ax = ix + d0 * off;
@@ -94,13 +95,15 @@ inline float4 gaussian_1d(image_2d<const Storage, Layout> tex, float2 uv, float 
 	return sum / max(weight_sum, 1e-8f);
 }
 
-#else // !VEKL_CPU — GPU backends keep the original bilinear-sampling path.
+#else // !VEKL_CPU
 
-/// Separable 1D Gaussian convolution — GPU path (CUDA / Metal / OpenCL).
+/// Separable 1D Gaussian convolution
 ///
-/// Kept as-is: `sample_linear` maps to hardware-accelerated bilinear on the
-/// GPU so the CPU-specific perf trade-offs do not apply. `thread_local` is
-/// not supported in device code so the weight cache is CPU-only.
+/// Uses stride-2 sampling with hardware bilinear interpolation to blend
+/// adjacent texel pairs per tap. For each pair at offsets (2i-1, 2i), the
+/// bilinear sample is placed at the weighted midpoint so that the combined
+/// tap reproduces the exact weighted sum `w_a * c_a + w_b * c_b` in a
+/// single texture fetch.
 template <typename Storage, typename Layout = layout_rgba>
 inline float4 gaussian_1d(image_2d<const Storage, Layout> tex, float2 uv, float sigma, int radius, bool vertical)
 {
@@ -110,14 +113,37 @@ inline float4 gaussian_1d(image_2d<const Storage, Layout> tex, float2 uv, float 
 	float4 sum = float4(0.0);
 	float weight_sum = 0.0;
 
+	// Centre tap
 	float wc = gaussian_weight_1d(0, sigma);
 	sum += tex.sample_linear(uv) * wc;
 	weight_sum += wc;
 
-	for (int i = 1; i <= radius / 3; ++i)
+	// Stride-2: each iteration covers two texel offsets (2i-1, 2i)
+	// using one bilinear fetch placed at the Gaussian-weighted midpoint.
+	const int half = radius / 2;
+	for (int i = 1; i <= half; ++i)
 	{
-		float w = gaussian_weight_1d(i, sigma);
-		float2 offset = dir * (float(i * 3) * texel_size);
+		float w_a = gaussian_weight_1d(i * 2 - 1, sigma);
+		float w_b = gaussian_weight_1d(i * 2,     sigma);
+		float w_combined = w_a + w_b;
+
+		// Weighted midpoint between texel (2i-1) and texel (2i):
+		// bilinear at this offset yields (w_a*c_a + w_b*c_b) / w_combined
+		float midpoint = float(i * 2 - 1) + w_b / max(w_combined, 1e-8f);
+		float2 offset = dir * (midpoint * texel_size);
+
+		float4 c1 = tex.sample_linear(uv + offset);
+		float4 c2 = tex.sample_linear(uv - offset);
+
+		sum += (c1 + c2) * w_combined;
+		weight_sum += 2.0 * w_combined;
+	}
+
+	// If radius is odd, one texel remains uncovered — add it separately
+	if ((radius & 1) != 0 && radius > 0)
+	{
+		float w = gaussian_weight_1d(radius, sigma);
+		float2 offset = dir * (float(radius) * texel_size);
 
 		float4 c1 = tex.sample_linear(uv + offset);
 		float4 c2 = tex.sample_linear(uv - offset);
