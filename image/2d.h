@@ -99,6 +99,33 @@ struct image_2d
 		return layout.to_rgba(pixel_load(data, pitch_px, xy, format));
 	}
 
+	inline float4 sample_bicubic(float2 uv) const
+	{
+		float2 p = pixel_coord(uv, size_px);
+		float2 pf = floor(p);
+		float2 f = p - pf;
+		float2 f2 = f * f;
+		float2 f3 = f2 * f;
+
+		float2 w0 = f3 - 2.0f * f2 + f;
+		float2 w1 = 3.0f * f3 - 5.0f * f2 + 2.0f;
+		float2 w2 = -3.0f * f3 + 4.0f * f2 + f;
+		float2 w3 = f3 - f2;
+
+		float2 g0 = w0 + w1;
+		float2 g1 = w2 + w3;
+		float2 h0 = (w1 / g0) - 0.5f + pf;
+		float2 h1 = (w3 / g1) + 0.5f + pf;
+
+		float4 c00 = sample_linear((h0 + float2(0.0f, 0.0f)) / float2(size_px));
+		float4 c10 = sample_linear((h0 + float2(1.0f, 0.0f)) / float2(size_px));
+		float4 c01 = sample_linear((h0 + float2(0.0f, 1.0f)) / float2(size_px));
+		float4 c11 = sample_linear((h0 + float2(1.0f, 1.0f)) / float2(size_px));
+		float4 c0 = mix(c00, c10, g1.x);
+		float4 c1 = mix(c01, c11, g1.x);
+		return mix(c0, c1, g1.y);
+	}
+
 	inline float4 read_unchecked(uint2 xy) const
 	{
 		return layout.to_rgba(pixel_load(data, pitch_px, xy, format));
