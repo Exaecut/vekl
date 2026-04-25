@@ -7,9 +7,12 @@
 #endif
 
 #include "types/scalar.h"
-#include "types/vector.h"
-#include "types/convert.h"
-#include "types/ops.h"
+
+#ifndef VEKL_NATIVE_VECTOR_TYPES_PROVIDED
+    #include "types/vector.h"
+    #include "types/convert.h"
+    #include "types/ops.h"
+#endif
 
 #ifndef VEKL_VECTOR_TYPES_PROVIDED
 using float2 = vekl_float2;

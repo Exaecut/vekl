@@ -9,7 +9,7 @@ inline uint2 clamp_xy(uint2 xy, uint2 size_px)
 	return uint2(x, y);
 }
 
-inline float4 bilinear_sample(device const pixel *data, uint pitch_px,
+inline float4 bilinear_sample(const pixel *data, uint pitch_px,
 							   uint2 size_px, float2 uv, uint format)
 {
 	float2 p = pixel_coord(uv, size_px);
@@ -34,18 +34,18 @@ inline float4 bilinear_sample(device const pixel *data, uint pitch_px,
 template <typename Storage, typename Layout = layout_rgba>
 struct image_2d
 {
-	device Storage *data;
+	Storage *data;
 	uint pitch_px;
 	uint2 size_px;
 	Layout layout;
 	uint format;
 
 	image_2d() : data(nullptr), pitch_px(0), size_px(uint2(0, 0)), format(VEKL_FORMAT) {}
-	image_2d(device Storage *d, uint p, uint2 s)
+	image_2d(Storage *d, uint p, uint2 s)
 		: data(d), pitch_px(p), size_px(s), format(VEKL_FORMAT) {}
-	image_2d(device Storage *d, uint p, uint2 s, Layout l)
+	image_2d(Storage *d, uint p, uint2 s, Layout l)
 		: data(d), pitch_px(p), size_px(s), layout(l), format(VEKL_FORMAT) {}
-	image_2d(device Storage *d, uint p, uint2 s, Layout l, uint fmt)
+	image_2d(Storage *d, uint p, uint2 s, Layout l, uint fmt)
 		: data(d), pitch_px(p), size_px(s), layout(l), format(fmt) {}
 
 	inline float4 read(uint2 xy) const

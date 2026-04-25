@@ -14,6 +14,8 @@ using namespace metal;
 #define thread          thread
 #define restrict_ptr    __restrict
 #define restrict        __restrict
+#define host
+#define forceinline     __attribute__((always_inline)) inline
 
 #define param_dev_ro(T, name, s)   device const T* name [[buffer(s)]]
 #define param_dev_rw(T, name, s)   device T* name [[buffer(s)]]
@@ -55,6 +57,7 @@ typedef unsigned short ushort;
 #define dispatch_size() __vekl_dispatch_size
 
 #define VEKL_VECTOR_TYPES_PROVIDED
+#define VEKL_NATIVE_VECTOR_TYPES_PROVIDED
 #define VEKL_MATH_PROVIDED
 
 #include "common/types.h"

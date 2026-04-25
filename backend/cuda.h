@@ -10,11 +10,13 @@
 
 #define kernel          extern "C" __global__
 #define constant        __constant__
-#define device
+#define device          __device__
 #define threadgroup_mem __shared__
 #define thread
 #define restrict_ptr    __restrict__
 #define restrict        __restrict__
+#define host            __host__
+#define forceinline     __forceinline__
 
 #define param_dev_ro(T, name, s)   const T * __restrict__ name
 #define param_dev_rw(T, name, s)   T * __restrict__ name
@@ -76,11 +78,11 @@ typedef float4 pixel;
 typedef float4 half4;
 #endif
 
-inline float4 pixel_load(device const pixel *data, uint pitch_px, uint2 xy, uint /*format*/) {
+inline float4 pixel_load(const pixel *data, uint pitch_px, uint2 xy, uint /*format*/) {
 	return (float4)data[xy.y * pitch_px + xy.x];
 }
 
-inline void pixel_store(device pixel *data, uint pitch_px, uint2 xy, float4 c, uint /*format*/) {
+inline void pixel_store(pixel *data, uint pitch_px, uint2 xy, float4 c, uint /*format*/) {
 	data[xy.y * pitch_px + xy.x] = (pixel)c;
 }
 

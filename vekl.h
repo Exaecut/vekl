@@ -27,6 +27,7 @@
 #include "maths/transform.h"
 #include "maths/trigonometry.h"
 #include "maths/easing.h"
+#include "maths/color.h"
 
 #include "image/coords.h"
 #include "image/2d.h"

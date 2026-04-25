@@ -16,6 +16,14 @@
 #define thread
 #define restrict_ptr
 #define restrict
+#define host
+#if defined(_MSC_VER)
+    #define forceinline __forceinline
+#elif defined(__clang__) || defined(__GNUC__)
+    #define forceinline inline __attribute__((always_inline))
+#else
+    #define forceinline inline
+#endif
 
 #define param_dev_ro(T, name, s)   const T * __restrict name
 #define param_dev_rw(T, name, s)   T * __restrict name
@@ -67,7 +75,7 @@ typedef void pixel;
 // a worker that switches between a bpp=16 job and a bpp=4 job would see the
 // wrong __cpu_format if the dispatch wrapper's volatile write races with the
 // read inside the inlined kernel body.
-inline float4 pixel_load(device const pixel *data, uint pitch_px, uint2 xy, uint format) {
+inline float4 pixel_load(const pixel *data, uint pitch_px, uint2 xy, uint format) {
 	uint idx = xy.y * pitch_px + xy.x;
 	switch (format) {
 		case 4: {
@@ -86,7 +94,7 @@ inline float4 pixel_load(device const pixel *data, uint pitch_px, uint2 xy, uint
 	}
 }
 
-inline void pixel_store(device pixel *data, uint pitch_px, uint2 xy, float4 c, uint format) {
+inline void pixel_store(pixel *data, uint pitch_px, uint2 xy, float4 c, uint format) {
 	uint idx = xy.y * pitch_px + xy.x;
 	switch (format) {
 		case 4: {
