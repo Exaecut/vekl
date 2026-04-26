@@ -18,4 +18,11 @@ inline float degrees(float rad)
 	return rad * (180.0f / M_PI_F);
 }
 
+inline float wrap_pi(float h)
+{
+    h = fmodf(h + PI, TAU);
+    if (h < 0.0f) h += TAU;
+    return h - PI;
+}
+
 #endif

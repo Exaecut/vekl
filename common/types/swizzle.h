@@ -31,157 +31,41 @@ struct vekl_swizzle4 {
     host device forceinline vekl_swizzle4& operator=(vekl_float4 value);
 };
 
-#define VEKL_SWIZZLE_COMPONENTS_XY_A(CB, ...) \
-    CB(__VA_ARGS__, x, 0) \
-    CB(__VA_ARGS__, y, 1)
-#define VEKL_SWIZZLE_COMPONENTS_XY_B(CB, ...) \
-    CB(__VA_ARGS__, x, 0) \
-    CB(__VA_ARGS__, y, 1)
-#define VEKL_SWIZZLE_COMPONENTS_XY_C(CB, ...) \
-    CB(__VA_ARGS__, x, 0) \
-    CB(__VA_ARGS__, y, 1)
-#define VEKL_SWIZZLE_COMPONENTS_XY_D(CB, ...) \
-    CB(__VA_ARGS__, x, 0) \
-    CB(__VA_ARGS__, y, 1)
+#define VEKL_SWIZZLE2_XY(X, L) X(2,L,xx,0,0,0,0) X(2,L,xy,0,1,0,0) X(2,L,yx,1,0,0,0) X(2,L,yy,1,1,0,0)
 
-#define VEKL_SWIZZLE_COMPONENTS_RGB_A(CB, ...) \
-    CB(__VA_ARGS__, r, 0) \
-    CB(__VA_ARGS__, g, 1) \
-    CB(__VA_ARGS__, b, 2)
-#define VEKL_SWIZZLE_COMPONENTS_RGB_B(CB, ...) \
-    CB(__VA_ARGS__, r, 0) \
-    CB(__VA_ARGS__, g, 1) \
-    CB(__VA_ARGS__, b, 2)
-#define VEKL_SWIZZLE_COMPONENTS_RGB_C(CB, ...) \
-    CB(__VA_ARGS__, r, 0) \
-    CB(__VA_ARGS__, g, 1) \
-    CB(__VA_ARGS__, b, 2)
-#define VEKL_SWIZZLE_COMPONENTS_RGB_D(CB, ...) \
-    CB(__VA_ARGS__, r, 0) \
-    CB(__VA_ARGS__, g, 1) \
-    CB(__VA_ARGS__, b, 2)
+#define VEKL_SWIZZLE3_XY(X, L) X(3,L,xxx,0,0,0,0) X(3,L,xxy,0,0,1,0) X(3,L,xyx,0,1,0,0) X(3,L,xyy,0,1,1,0) X(3,L,yxx,1,0,0,0) X(3,L,yxy,1,0,1,0) X(3,L,yyx,1,1,0,0) X(3,L,yyy,1,1,1,0)
 
-#define VEKL_SWIZZLE_COMPONENTS_RGBA_A(CB, ...) \
-    CB(__VA_ARGS__, r, 0) \
-    CB(__VA_ARGS__, g, 1) \
-    CB(__VA_ARGS__, b, 2) \
-    CB(__VA_ARGS__, a, 3)
-#define VEKL_SWIZZLE_COMPONENTS_RGBA_B(CB, ...) \
-    CB(__VA_ARGS__, r, 0) \
-    CB(__VA_ARGS__, g, 1) \
-    CB(__VA_ARGS__, b, 2) \
-    CB(__VA_ARGS__, a, 3)
-#define VEKL_SWIZZLE_COMPONENTS_RGBA_C(CB, ...) \
-    CB(__VA_ARGS__, r, 0) \
-    CB(__VA_ARGS__, g, 1) \
-    CB(__VA_ARGS__, b, 2) \
-    CB(__VA_ARGS__, a, 3)
-#define VEKL_SWIZZLE_COMPONENTS_RGBA_D(CB, ...) \
-    CB(__VA_ARGS__, r, 0) \
-    CB(__VA_ARGS__, g, 1) \
-    CB(__VA_ARGS__, b, 2) \
-    CB(__VA_ARGS__, a, 3)
+#define VEKL_SWIZZLE4_XY(X, L) X(4,L,xxxx,0,0,0,0) X(4,L,xxxy,0,0,0,1) X(4,L,xxyx,0,0,1,0) X(4,L,xxyy,0,0,1,1) X(4,L,xyxx,0,1,0,0) X(4,L,xyxy,0,1,0,1) X(4,L,xyyx,0,1,1,0) X(4,L,xyyy,0,1,1,1) X(4,L,yxxx,1,0,0,0) X(4,L,yxxy,1,0,0,1) X(4,L,yxyx,1,0,1,0) X(4,L,yxyy,1,0,1,1) X(4,L,yyxx,1,1,0,0) X(4,L,yyxy,1,1,0,1) X(4,L,yyyx,1,1,1,0) X(4,L,yyyy,1,1,1,1)
 
-#define VEKL_SWIZZLE_COMPONENTS_XYZ_A(CB, ...) \
-    CB(__VA_ARGS__, x, 0) \
-    CB(__VA_ARGS__, y, 1) \
-    CB(__VA_ARGS__, z, 2)
-#define VEKL_SWIZZLE_COMPONENTS_XYZ_B(CB, ...) \
-    CB(__VA_ARGS__, x, 0) \
-    CB(__VA_ARGS__, y, 1) \
-    CB(__VA_ARGS__, z, 2)
-#define VEKL_SWIZZLE_COMPONENTS_XYZ_C(CB, ...) \
-    CB(__VA_ARGS__, x, 0) \
-    CB(__VA_ARGS__, y, 1) \
-    CB(__VA_ARGS__, z, 2)
-#define VEKL_SWIZZLE_COMPONENTS_XYZ_D(CB, ...) \
-    CB(__VA_ARGS__, x, 0) \
-    CB(__VA_ARGS__, y, 1) \
-    CB(__VA_ARGS__, z, 2)
+#define VEKL_SWIZZLE2_XYZ(X, L) X(2,L,xx,0,0,0,0) X(2,L,xy,0,1,0,0) X(2,L,xz,0,2,0,0) X(2,L,yx,1,0,0,0) X(2,L,yy,1,1,0,0) X(2,L,yz,1,2,0,0) X(2,L,zx,2,0,0,0) X(2,L,zy,2,1,0,0) X(2,L,zz,2,2,0,0)
 
-#define VEKL_SWIZZLE_COMPONENTS_XYZW_A(CB, ...) \
-    CB(__VA_ARGS__, x, 0) \
-    CB(__VA_ARGS__, y, 1) \
-    CB(__VA_ARGS__, z, 2) \
-    CB(__VA_ARGS__, w, 3)
-#define VEKL_SWIZZLE_COMPONENTS_XYZW_B(CB, ...) \
-    CB(__VA_ARGS__, x, 0) \
-    CB(__VA_ARGS__, y, 1) \
-    CB(__VA_ARGS__, z, 2) \
-    CB(__VA_ARGS__, w, 3)
-#define VEKL_SWIZZLE_COMPONENTS_XYZW_C(CB, ...) \
-    CB(__VA_ARGS__, x, 0) \
-    CB(__VA_ARGS__, y, 1) \
-    CB(__VA_ARGS__, z, 2) \
-    CB(__VA_ARGS__, w, 3)
-#define VEKL_SWIZZLE_COMPONENTS_XYZW_D(CB, ...) \
-    CB(__VA_ARGS__, x, 0) \
-    CB(__VA_ARGS__, y, 1) \
-    CB(__VA_ARGS__, z, 2) \
-    CB(__VA_ARGS__, w, 3)
+#define VEKL_SWIZZLE3_XYZ(X, L) X(3,L,xxx,0,0,0,0) X(3,L,xxy,0,0,1,0) X(3,L,xxz,0,0,2,0) X(3,L,xyx,0,1,0,0) X(3,L,xyy,0,1,1,0) X(3,L,xyz,0,1,2,0) X(3,L,xzx,0,2,0,0) X(3,L,xzy,0,2,1,0) X(3,L,xzz,0,2,2,0) X(3,L,yxx,1,0,0,0) X(3,L,yxy,1,0,1,0) X(3,L,yxz,1,0,2,0) X(3,L,yyx,1,1,0,0) X(3,L,yyy,1,1,1,0) X(3,L,yyz,1,1,2,0) X(3,L,yzx,1,2,0,0) X(3,L,yzy,1,2,1,0) X(3,L,yzz,1,2,2,0) X(3,L,zxx,2,0,0,0) X(3,L,zxy,2,0,1,0) X(3,L,zxz,2,0,2,0) X(3,L,zyx,2,1,0,0) X(3,L,zyy,2,1,1,0) X(3,L,zyz,2,1,2,0) X(3,L,zzx,2,2,0,0) X(3,L,zzy,2,2,1,0) X(3,L,zzz,2,2,2,0)
 
-#define VEKL_SWIZZLE_COMPONENTS_LEVEL(COMPONENTS, LEVEL) \
-    VEKL_SWIZZLE_COMPONENTS_LEVEL_IMPL(COMPONENTS, LEVEL)
+#define VEKL_SWIZZLE4_XYZ(X, L) X(4,L,xxxx,0,0,0,0) X(4,L,xxxy,0,0,0,1) X(4,L,xxxz,0,0,0,2) X(4,L,xxyx,0,0,1,0) X(4,L,xxyy,0,0,1,1) X(4,L,xxyz,0,0,1,2) X(4,L,xxzx,0,0,2,0) X(4,L,xxzy,0,0,2,1) X(4,L,xxzz,0,0,2,2) X(4,L,xyxx,0,1,0,0) X(4,L,xyxy,0,1,0,1) X(4,L,xyxz,0,1,0,2) X(4,L,xyyx,0,1,1,0) X(4,L,xyyy,0,1,1,1) X(4,L,xyyz,0,1,1,2) X(4,L,xyzx,0,1,2,0) X(4,L,xyzy,0,1,2,1) X(4,L,xyzz,0,1,2,2) X(4,L,xzxx,0,2,0,0) X(4,L,xzxy,0,2,0,1) X(4,L,xzxz,0,2,0,2) X(4,L,xzyx,0,2,1,0) X(4,L,xzyy,0,2,1,1) X(4,L,xzyz,0,2,1,2) X(4,L,xzzx,0,2,2,0) X(4,L,xzzy,0,2,2,1) X(4,L,xzzz,0,2,2,2) X(4,L,yxxx,1,0,0,0) X(4,L,yxxy,1,0,0,1) X(4,L,yxxz,1,0,0,2) X(4,L,yxyx,1,0,1,0) X(4,L,yxyy,1,0,1,1) X(4,L,yxyz,1,0,1,2) X(4,L,yxzx,1,0,2,0) X(4,L,yxzy,1,0,2,1) X(4,L,yxzz,1,0,2,2) X(4,L,yyxx,1,1,0,0) X(4,L,yyxy,1,1,0,1) X(4,L,yyxz,1,1,0,2) X(4,L,yyyx,1,1,1,0) X(4,L,yyyy,1,1,1,1) X(4,L,yyyz,1,1,1,2) X(4,L,yyzx,1,1,2,0) X(4,L,yyzy,1,1,2,1) X(4,L,yyzz,1,1,2,2) X(4,L,yzxx,1,2,0,0) X(4,L,yzxy,1,2,0,1) X(4,L,yzxz,1,2,0,2) X(4,L,yzyx,1,2,1,0) X(4,L,yzyy,1,2,1,1) X(4,L,yzyz,1,2,1,2) X(4,L,yzzx,1,2,2,0) X(4,L,yzzy,1,2,2,1) X(4,L,yzzz,1,2,2,2) X(4,L,zxxx,2,0,0,0) X(4,L,zxxy,2,0,0,1) X(4,L,zxxz,2,0,0,2) X(4,L,zxyx,2,0,1,0) X(4,L,zxyy,2,0,1,1) X(4,L,zxyz,2,0,1,2) X(4,L,zxzx,2,0,2,0) X(4,L,zxzy,2,0,2,1) X(4,L,zxzz,2,0,2,2) X(4,L,zyxx,2,1,0,0) X(4,L,zyxy,2,1,0,1) X(4,L,zyxz,2,1,0,2) X(4,L,zyyx,2,1,1,0) X(4,L,zyyy,2,1,1,1) X(4,L,zyyz,2,1,1,2) X(4,L,zyzx,2,1,2,0) X(4,L,zyzy,2,1,2,1) X(4,L,zyzz,2,1,2,2) X(4,L,zzxx,2,2,0,0) X(4,L,zzxy,2,2,0,1) X(4,L,zzxz,2,2,0,2) X(4,L,zzyx,2,2,1,0) X(4,L,zzyy,2,2,1,1) X(4,L,zzyz,2,2,1,2) X(4,L,zzzx,2,2,2,0) X(4,L,zzzy,2,2,2,1) X(4,L,zzzz,2,2,2,2)
 
-#define VEKL_SWIZZLE_COMPONENTS_LEVEL_IMPL(COMPONENTS, LEVEL) \
-    COMPONENTS##_##LEVEL
+#define VEKL_SWIZZLE2_RGB(X, L) X(2,L,rr,0,0,0,0) X(2,L,rg,0,1,0,0) X(2,L,rb,0,2,0,0) X(2,L,gr,1,0,0,0) X(2,L,gg,1,1,0,0) X(2,L,gb,1,2,0,0) X(2,L,br,2,0,0,0) X(2,L,bg,2,1,0,0) X(2,L,bb,2,2,0,0)
 
-#define VEKL_SWIZZLE2_COMBOS(COMPONENTS, X, LANES) \
-    VEKL_SWIZZLE_COMPONENTS_LEVEL(COMPONENTS, A)(VEKL_SWIZZLE2_A, COMPONENTS, X, LANES)
+#define VEKL_SWIZZLE3_RGB(X, L) X(3,L,rrr,0,0,0,0) X(3,L,rrg,0,0,1,0) X(3,L,rrb,0,0,2,0) X(3,L,rgr,0,1,0,0) X(3,L,rgg,0,1,1,0) X(3,L,rgb,0,1,2,0) X(3,L,rbr,0,2,0,0) X(3,L,rbg,0,2,1,0) X(3,L,rbb,0,2,2,0) X(3,L,grr,1,0,0,0) X(3,L,grg,1,0,1,0) X(3,L,grb,1,0,2,0) X(3,L,ggr,1,1,0,0) X(3,L,ggg,1,1,1,0) X(3,L,ggb,1,1,2,0) X(3,L,gbr,1,2,0,0) X(3,L,gbg,1,2,1,0) X(3,L,gbb,1,2,2,0) X(3,L,brr,2,0,0,0) X(3,L,brg,2,0,1,0) X(3,L,brb,2,0,2,0) X(3,L,bgr,2,1,0,0) X(3,L,bgg,2,1,1,0) X(3,L,bgb,2,1,2,0) X(3,L,bbr,2,2,0,0) X(3,L,bbg,2,2,1,0) X(3,L,bbb,2,2,2,0)
 
-#define VEKL_SWIZZLE2_A(COMPONENTS, X, LANES, A_NAME, A_INDEX) \
-    VEKL_SWIZZLE_COMPONENTS_LEVEL(COMPONENTS, B)(VEKL_SWIZZLE2_B, X, LANES, A_NAME, A_INDEX)
+#define VEKL_SWIZZLE4_RGB(X, L) X(4,L,rrrr,0,0,0,0) X(4,L,rrrg,0,0,0,1) X(4,L,rrrb,0,0,0,2) X(4,L,rrgr,0,0,1,0) X(4,L,rrgg,0,0,1,1) X(4,L,rrgb,0,0,1,2) X(4,L,rrbr,0,0,2,0) X(4,L,rrbg,0,0,2,1) X(4,L,rrbb,0,0,2,2) X(4,L,rgrr,0,1,0,0) X(4,L,rgrg,0,1,0,1) X(4,L,rgrb,0,1,0,2) X(4,L,rggr,0,1,1,0) X(4,L,rggg,0,1,1,1) X(4,L,rggb,0,1,1,2) X(4,L,rgbr,0,1,2,0) X(4,L,rgbg,0,1,2,1) X(4,L,rgbb,0,1,2,2) X(4,L,rbrr,0,2,0,0) X(4,L,rbrg,0,2,0,1) X(4,L,rbrb,0,2,0,2) X(4,L,rbgr,0,2,1,0) X(4,L,rbgg,0,2,1,1) X(4,L,rbgb,0,2,1,2) X(4,L,rbbr,0,2,2,0) X(4,L,rbbg,0,2,2,1) X(4,L,rbbb,0,2,2,2) X(4,L,grrr,1,0,0,0) X(4,L,grrg,1,0,0,1) X(4,L,grrb,1,0,0,2) X(4,L,grgr,1,0,1,0) X(4,L,grgg,1,0,1,1) X(4,L,grgb,1,0,1,2) X(4,L,grbr,1,0,2,0) X(4,L,grbg,1,0,2,1) X(4,L,grbb,1,0,2,2) X(4,L,ggrr,1,1,0,0) X(4,L,ggrg,1,1,0,1) X(4,L,ggrb,1,1,0,2) X(4,L,gggr,1,1,1,0) X(4,L,gggg,1,1,1,1) X(4,L,gggb,1,1,1,2) X(4,L,ggbr,1,1,2,0) X(4,L,ggbg,1,1,2,1) X(4,L,ggbb,1,1,2,2) X(4,L,gbrr,1,2,0,0) X(4,L,gbrg,1,2,0,1) X(4,L,gbrb,1,2,0,2) X(4,L,gbgr,1,2,1,0) X(4,L,gbgg,1,2,1,1) X(4,L,gbgb,1,2,1,2) X(4,L,gbbr,1,2,2,0) X(4,L,gbbg,1,2,2,1) X(4,L,gbbb,1,2,2,2) X(4,L,brrr,2,0,0,0) X(4,L,brrg,2,0,0,1) X(4,L,brrb,2,0,0,2) X(4,L,brgr,2,0,1,0) X(4,L,brgg,2,0,1,1) X(4,L,brgb,2,0,1,2) X(4,L,brbr,2,0,2,0) X(4,L,brbg,2,0,2,1) X(4,L,brbb,2,0,2,2) X(4,L,bgrr,2,1,0,0) X(4,L,bgrg,2,1,0,1) X(4,L,bgrb,2,1,0,2) X(4,L,bggr,2,1,1,0) X(4,L,bggg,2,1,1,1) X(4,L,bggb,2,1,1,2) X(4,L,bgbr,2,1,2,0) X(4,L,bgbg,2,1,2,1) X(4,L,bgbb,2,1,2,2) X(4,L,bbrr,2,2,0,0) X(4,L,bbrg,2,2,0,1) X(4,L,bbrb,2,2,0,2) X(4,L,bbgr,2,2,1,0) X(4,L,bbgg,2,2,1,1) X(4,L,bbgb,2,2,1,2) X(4,L,bbbr,2,2,2,0) X(4,L,bbbg,2,2,2,1) X(4,L,bbbb,2,2,2,2)
 
-#define VEKL_SWIZZLE2_B(X, LANES, A_NAME, A_INDEX, B_NAME, B_INDEX) \
-    X(2, LANES, A_NAME##B_NAME, A_INDEX, B_INDEX, 0, 0)
+#define VEKL_SWIZZLE2_XYZW(X, L) X(2,L,xx,0,0,0,0) X(2,L,xy,0,1,0,0) X(2,L,xz,0,2,0,0) X(2,L,xw,0,3,0,0) X(2,L,yx,1,0,0,0) X(2,L,yy,1,1,0,0) X(2,L,yz,1,2,0,0) X(2,L,yw,1,3,0,0) X(2,L,zx,2,0,0,0) X(2,L,zy,2,1,0,0) X(2,L,zz,2,2,0,0) X(2,L,zw,2,3,0,0) X(2,L,wx,3,0,0,0) X(2,L,wy,3,1,0,0) X(2,L,wz,3,2,0,0) X(2,L,ww,3,3,0,0)
 
-#define VEKL_SWIZZLE3_COMBOS(COMPONENTS, X, LANES) \
-    VEKL_SWIZZLE_COMPONENTS_LEVEL(COMPONENTS, A)(VEKL_SWIZZLE3_A, COMPONENTS, X, LANES)
+#define VEKL_SWIZZLE3_XYZW(X, L) X(3,L,xxx,0,0,0,0) X(3,L,xxy,0,0,1,0) X(3,L,xxz,0,0,2,0) X(3,L,xxw,0,0,3,0) X(3,L,xyx,0,1,0,0) X(3,L,xyy,0,1,1,0) X(3,L,xyz,0,1,2,0) X(3,L,xyw,0,1,3,0) X(3,L,xzx,0,2,0,0) X(3,L,xzy,0,2,1,0) X(3,L,xzz,0,2,2,0) X(3,L,xzw,0,2,3,0) X(3,L,xwx,0,3,0,0) X(3,L,xwy,0,3,1,0) X(3,L,xwz,0,3,2,0) X(3,L,xww,0,3,3,0) X(3,L,yxx,1,0,0,0) X(3,L,yxy,1,0,1,0) X(3,L,yxz,1,0,2,0) X(3,L,yxw,1,0,3,0) X(3,L,yyx,1,1,0,0) X(3,L,yyy,1,1,1,0) X(3,L,yyz,1,1,2,0) X(3,L,yyw,1,1,3,0) X(3,L,yzx,1,2,0,0) X(3,L,yzy,1,2,1,0) X(3,L,yzz,1,2,2,0) X(3,L,yzw,1,2,3,0) X(3,L,ywx,1,3,0,0) X(3,L,ywy,1,3,1,0) X(3,L,ywz,1,3,2,0) X(3,L,yww,1,3,3,0) X(3,L,zxx,2,0,0,0) X(3,L,zxy,2,0,1,0) X(3,L,zxz,2,0,2,0) X(3,L,zxw,2,0,3,0) X(3,L,zyx,2,1,0,0) X(3,L,zyy,2,1,1,0) X(3,L,zyz,2,1,2,0) X(3,L,zyw,2,1,3,0) X(3,L,zzx,2,2,0,0) X(3,L,zzy,2,2,1,0) X(3,L,zzz,2,2,2,0) X(3,L,zzw,2,2,3,0) X(3,L,zwx,2,3,0,0) X(3,L,zwy,2,3,1,0) X(3,L,zwz,2,3,2,0) X(3,L,zww,2,3,3,0) X(3,L,wxx,3,0,0,0) X(3,L,wxy,3,0,1,0) X(3,L,wxz,3,0,2,0) X(3,L,wxw,3,0,3,0) X(3,L,wyx,3,1,0,0) X(3,L,wyy,3,1,1,0) X(3,L,wyz,3,1,2,0) X(3,L,wyw,3,1,3,0) X(3,L,wzx,3,2,0,0) X(3,L,wzy,3,2,1,0) X(3,L,wzz,3,2,2,0) X(3,L,wzw,3,2,3,0) X(3,L,wwx,3,3,0,0) X(3,L,wwy,3,3,1,0) X(3,L,wwz,3,3,2,0) X(3,L,www,3,3,3,0)
 
-#define VEKL_SWIZZLE3_A(COMPONENTS, X, LANES, A_NAME, A_INDEX) \
-    VEKL_SWIZZLE_COMPONENTS_LEVEL(COMPONENTS, B)(VEKL_SWIZZLE3_B, COMPONENTS, X, LANES, A_NAME, A_INDEX)
+#define VEKL_SWIZZLE4_XYZW(X, L) X(4,L,xxxx,0,0,0,0) X(4,L,xxxy,0,0,0,1) X(4,L,xxxz,0,0,0,2) X(4,L,xxxw,0,0,0,3) X(4,L,xxyx,0,0,1,0) X(4,L,xxyy,0,0,1,1) X(4,L,xxyz,0,0,1,2) X(4,L,xxyw,0,0,1,3) X(4,L,xxzx,0,0,2,0) X(4,L,xxzy,0,0,2,1) X(4,L,xxzz,0,0,2,2) X(4,L,xxzw,0,0,2,3) X(4,L,xxwx,0,0,3,0) X(4,L,xxwy,0,0,3,1) X(4,L,xxwz,0,0,3,2) X(4,L,xxww,0,0,3,3) X(4,L,xyxx,0,1,0,0) X(4,L,xyxy,0,1,0,1) X(4,L,xyxz,0,1,0,2) X(4,L,xyxw,0,1,0,3) X(4,L,xyyx,0,1,1,0) X(4,L,xyyy,0,1,1,1) X(4,L,xyyz,0,1,1,2) X(4,L,xyyw,0,1,1,3) X(4,L,xyzx,0,1,2,0) X(4,L,xyzy,0,1,2,1) X(4,L,xyzz,0,1,2,2) X(4,L,xyzw,0,1,2,3) X(4,L,xywx,0,1,3,0) X(4,L,xywy,0,1,3,1) X(4,L,xywz,0,1,3,2) X(4,L,xyww,0,1,3,3) X(4,L,xzxx,0,2,0,0) X(4,L,xzxy,0,2,0,1) X(4,L,xzxz,0,2,0,2) X(4,L,xzxw,0,2,0,3) X(4,L,xzyx,0,2,1,0) X(4,L,xzyy,0,2,1,1) X(4,L,xzyz,0,2,1,2) X(4,L,xzyw,0,2,1,3) X(4,L,xzzx,0,2,2,0) X(4,L,xzzy,0,2,2,1) X(4,L,xzzz,0,2,2,2) X(4,L,xzzw,0,2,2,3) X(4,L,xzwx,0,2,3,0) X(4,L,xzwy,0,2,3,1) X(4,L,xzwz,0,2,3,2) X(4,L,xzww,0,2,3,3) X(4,L,xwxx,0,3,0,0) X(4,L,xwxy,0,3,0,1) X(4,L,xwxz,0,3,0,2) X(4,L,xwxw,0,3,0,3) X(4,L,xwyx,0,3,1,0) X(4,L,xwyy,0,3,1,1) X(4,L,xwyz,0,3,1,2) X(4,L,xwyw,0,3,1,3) X(4,L,xwzx,0,3,2,0) X(4,L,xwzy,0,3,2,1) X(4,L,xwzz,0,3,2,2) X(4,L,xwzw,0,3,2,3) X(4,L,xwwx,0,3,3,0) X(4,L,xwwy,0,3,3,1) X(4,L,xwwz,0,3,3,2) X(4,L,xwww,0,3,3,3) X(4,L,yxxx,1,0,0,0) X(4,L,yxxy,1,0,0,1) X(4,L,yxxz,1,0,0,2) X(4,L,yxxw,1,0,0,3) X(4,L,yxyx,1,0,1,0) X(4,L,yxyy,1,0,1,1) X(4,L,yxyz,1,0,1,2) X(4,L,yxyw,1,0,1,3) X(4,L,yxzx,1,0,2,0) X(4,L,yxzy,1,0,2,1) X(4,L,yxzz,1,0,2,2) X(4,L,yxzw,1,0,2,3) X(4,L,yxwx,1,0,3,0) X(4,L,yxwy,1,0,3,1) X(4,L,yxwz,1,0,3,2) X(4,L,yxww,1,0,3,3) X(4,L,yyxx,1,1,0,0) X(4,L,yyxy,1,1,0,1) X(4,L,yyxz,1,1,0,2) X(4,L,yyxw,1,1,0,3) X(4,L,yyyx,1,1,1,0) X(4,L,yyyy,1,1,1,1) X(4,L,yyyz,1,1,1,2) X(4,L,yyyw,1,1,1,3) X(4,L,yyzx,1,1,2,0) X(4,L,yyzy,1,1,2,1) X(4,L,yyzz,1,1,2,2) X(4,L,yyzw,1,1,2,3) X(4,L,yywx,1,1,3,0) X(4,L,yywy,1,1,3,1) X(4,L,yywz,1,1,3,2) X(4,L,yyww,1,1,3,3) X(4,L,yzxx,1,2,0,0) X(4,L,yzxy,1,2,0,1) X(4,L,yzxz,1,2,0,2) X(4,L,yzxw,1,2,0,3) X(4,L,yzyx,1,2,1,0) X(4,L,yzyy,1,2,1,1) X(4,L,yzyz,1,2,1,2) X(4,L,yzyw,1,2,1,3) X(4,L,yzzx,1,2,2,0) X(4,L,yzzy,1,2,2,1) X(4,L,yzzz,1,2,2,2) X(4,L,yzzw,1,2,2,3) X(4,L,yzwx,1,2,3,0) X(4,L,yzwy,1,2,3,1) X(4,L,yzwz,1,2,3,2) X(4,L,yzww,1,2,3,3) X(4,L,ywxx,1,3,0,0) X(4,L,ywxy,1,3,0,1) X(4,L,ywxz,1,3,0,2) X(4,L,ywxw,1,3,0,3) X(4,L,ywyx,1,3,1,0) X(4,L,ywyy,1,3,1,1) X(4,L,ywyz,1,3,1,2) X(4,L,ywyw,1,3,1,3) X(4,L,ywzx,1,3,2,0) X(4,L,ywzy,1,3,2,1) X(4,L,ywzz,1,3,2,2) X(4,L,ywzw,1,3,2,3) X(4,L,ywwx,1,3,3,0) X(4,L,ywwy,1,3,3,1) X(4,L,ywwz,1,3,3,2) X(4,L,ywww,1,3,3,3) X(4,L,zxxx,2,0,0,0) X(4,L,zxxy,2,0,0,1) X(4,L,zxxz,2,0,0,2) X(4,L,zxxw,2,0,0,3) X(4,L,zxyx,2,0,1,0) X(4,L,zxyy,2,0,1,1) X(4,L,zxyz,2,0,1,2) X(4,L,zxyw,2,0,1,3) X(4,L,zxzx,2,0,2,0) X(4,L,zxzy,2,0,2,1) X(4,L,zxzz,2,0,2,2) X(4,L,zxzw,2,0,2,3) X(4,L,zxwx,2,0,3,0) X(4,L,zxwy,2,0,3,1) X(4,L,zxwz,2,0,3,2) X(4,L,zxww,2,0,3,3) X(4,L,zyxx,2,1,0,0) X(4,L,zyxy,2,1,0,1) X(4,L,zyxz,2,1,0,2) X(4,L,zyxw,2,1,0,3) X(4,L,zyyx,2,1,1,0) X(4,L,zyyy,2,1,1,1) X(4,L,zyyz,2,1,1,2) X(4,L,zyyw,2,1,1,3) X(4,L,zyzx,2,1,2,0) X(4,L,zyzy,2,1,2,1) X(4,L,zyzz,2,1,2,2) X(4,L,zyzw,2,1,2,3) X(4,L,zywx,2,1,3,0) X(4,L,zywy,2,1,3,1) X(4,L,zywz,2,1,3,2) X(4,L,zyww,2,1,3,3) X(4,L,zzxx,2,2,0,0) X(4,L,zzxy,2,2,0,1) X(4,L,zzxz,2,2,0,2) X(4,L,zzxw,2,2,0,3) X(4,L,zzyx,2,2,1,0) X(4,L,zzyy,2,2,1,1) X(4,L,zzyz,2,2,1,2) X(4,L,zzyw,2,2,1,3) X(4,L,zzzx,2,2,2,0) X(4,L,zzzy,2,2,2,1) X(4,L,zzzz,2,2,2,2) X(4,L,zzzw,2,2,2,3) X(4,L,zzwx,2,2,3,0) X(4,L,zzwy,2,2,3,1) X(4,L,zzwz,2,2,3,2) X(4,L,zzww,2,2,3,3) X(4,L,zwxx,2,3,0,0) X(4,L,zwxy,2,3,0,1) X(4,L,zwxz,2,3,0,2) X(4,L,zwxw,2,3,0,3) X(4,L,zwyx,2,3,1,0) X(4,L,zwyy,2,3,1,1) X(4,L,zwyz,2,3,1,2) X(4,L,zwyw,2,3,1,3) X(4,L,zwzx,2,3,2,0) X(4,L,zwzy,2,3,2,1) X(4,L,zwzz,2,3,2,2) X(4,L,zwzw,2,3,2,3) X(4,L,zwwx,2,3,3,0) X(4,L,zwwy,2,3,3,1) X(4,L,zwwz,2,3,3,2) X(4,L,zwww,2,3,3,3) X(4,L,wxxx,3,0,0,0) X(4,L,wxxy,3,0,0,1) X(4,L,wxxz,3,0,0,2) X(4,L,wxxw,3,0,0,3) X(4,L,wxyx,3,0,1,0) X(4,L,wxyy,3,0,1,1) X(4,L,wxyz,3,0,1,2) X(4,L,wxyw,3,0,1,3) X(4,L,wxzx,3,0,2,0) X(4,L,wxzy,3,0,2,1) X(4,L,wxzz,3,0,2,2) X(4,L,wxzw,3,0,2,3) X(4,L,wxwx,3,0,3,0) X(4,L,wxwy,3,0,3,1) X(4,L,wxwz,3,0,3,2) X(4,L,wxww,3,0,3,3) X(4,L,wyxx,3,1,0,0) X(4,L,wyxy,3,1,0,1) X(4,L,wyxz,3,1,0,2) X(4,L,wyxw,3,1,0,3) X(4,L,wyyx,3,1,1,0) X(4,L,wyyy,3,1,1,1) X(4,L,wyyz,3,1,1,2) X(4,L,wyyw,3,1,1,3) X(4,L,wyzx,3,1,2,0) X(4,L,wyzy,3,1,2,1) X(4,L,wyzz,3,1,2,2) X(4,L,wyzw,3,1,2,3) X(4,L,wywx,3,1,3,0) X(4,L,wywy,3,1,3,1) X(4,L,wywz,3,1,3,2) X(4,L,wyww,3,1,3,3) X(4,L,wzxx,3,2,0,0) X(4,L,wzxy,3,2,0,1) X(4,L,wzxz,3,2,0,2) X(4,L,wzxw,3,2,0,3) X(4,L,wzyx,3,2,1,0) X(4,L,wzyy,3,2,1,1) X(4,L,wzyz,3,2,1,2) X(4,L,wzyw,3,2,1,3) X(4,L,wzzx,3,2,2,0) X(4,L,wzzy,3,2,2,1) X(4,L,wzzz,3,2,2,2) X(4,L,wzzw,3,2,2,3) X(4,L,wzwx,3,2,3,0) X(4,L,wzwy,3,2,3,1) X(4,L,wzwz,3,2,3,2) X(4,L,wzww,3,2,3,3) X(4,L,wwxx,3,3,0,0) X(4,L,wwxy,3,3,0,1) X(4,L,wwxz,3,3,0,2) X(4,L,wwxw,3,3,0,3) X(4,L,wwyx,3,3,1,0) X(4,L,wwyy,3,3,1,1) X(4,L,wwyz,3,3,1,2) X(4,L,wwyw,3,3,1,3) X(4,L,wwzx,3,3,2,0) X(4,L,wwzy,3,3,2,1) X(4,L,wwzz,3,3,2,2) X(4,L,wwzw,3,3,2,3) X(4,L,wwwx,3,3,3,0) X(4,L,wwwy,3,3,3,1) X(4,L,wwwz,3,3,3,2) X(4,L,wwww,3,3,3,3)
 
-#define VEKL_SWIZZLE3_B(COMPONENTS, X, LANES, A_NAME, A_INDEX, B_NAME, B_INDEX) \
-    VEKL_SWIZZLE_COMPONENTS_LEVEL(COMPONENTS, C)(VEKL_SWIZZLE3_C, X, LANES, A_NAME, A_INDEX, B_NAME, B_INDEX)
+#define VEKL_SWIZZLE2_RGBA(X, L) X(2,L,rr,0,0,0,0) X(2,L,rg,0,1,0,0) X(2,L,rb,0,2,0,0) X(2,L,ra,0,3,0,0) X(2,L,gr,1,0,0,0) X(2,L,gg,1,1,0,0) X(2,L,gb,1,2,0,0) X(2,L,ga,1,3,0,0) X(2,L,br,2,0,0,0) X(2,L,bg,2,1,0,0) X(2,L,bb,2,2,0,0) X(2,L,ba,2,3,0,0) X(2,L,ar,3,0,0,0) X(2,L,ag,3,1,0,0) X(2,L,ab,3,2,0,0) X(2,L,aa,3,3,0,0)
 
-#define VEKL_SWIZZLE3_C(X, LANES, A_NAME, A_INDEX, B_NAME, B_INDEX, C_NAME, C_INDEX) \
-    X(3, LANES, A_NAME##B_NAME##C_NAME, A_INDEX, B_INDEX, C_INDEX, 0)
+#define VEKL_SWIZZLE3_RGBA(X, L) X(3,L,rrr,0,0,0,0) X(3,L,rrg,0,0,1,0) X(3,L,rrb,0,0,2,0) X(3,L,rra,0,0,3,0) X(3,L,rgr,0,1,0,0) X(3,L,rgg,0,1,1,0) X(3,L,rgb,0,1,2,0) X(3,L,rga,0,1,3,0) X(3,L,rbr,0,2,0,0) X(3,L,rbg,0,2,1,0) X(3,L,rbb,0,2,2,0) X(3,L,rba,0,2,3,0) X(3,L,rar,0,3,0,0) X(3,L,rag,0,3,1,0) X(3,L,rab,0,3,2,0) X(3,L,raa,0,3,3,0) X(3,L,grr,1,0,0,0) X(3,L,grg,1,0,1,0) X(3,L,grb,1,0,2,0) X(3,L,gra,1,0,3,0) X(3,L,ggr,1,1,0,0) X(3,L,ggg,1,1,1,0) X(3,L,ggb,1,1,2,0) X(3,L,gga,1,1,3,0) X(3,L,gbr,1,2,0,0) X(3,L,gbg,1,2,1,0) X(3,L,gbb,1,2,2,0) X(3,L,gba,1,2,3,0) X(3,L,gar,1,3,0,0) X(3,L,gag,1,3,1,0) X(3,L,gab,1,3,2,0) X(3,L,gaa,1,3,3,0) X(3,L,brr,2,0,0,0) X(3,L,brg,2,0,1,0) X(3,L,brb,2,0,2,0) X(3,L,bra,2,0,3,0) X(3,L,bgr,2,1,0,0) X(3,L,bgg,2,1,1,0) X(3,L,bgb,2,1,2,0) X(3,L,bga,2,1,3,0) X(3,L,bbr,2,2,0,0) X(3,L,bbg,2,2,1,0) X(3,L,bbb,2,2,2,0) X(3,L,bba,2,2,3,0) X(3,L,bar,2,3,0,0) X(3,L,bag,2,3,1,0) X(3,L,bab,2,3,2,0) X(3,L,baa,2,3,3,0) X(3,L,arr,3,0,0,0) X(3,L,arg,3,0,1,0) X(3,L,arb,3,0,2,0) X(3,L,ara,3,0,3,0) X(3,L,agr,3,1,0,0) X(3,L,agg,3,1,1,0) X(3,L,agb,3,1,2,0) X(3,L,aga,3,1,3,0) X(3,L,abr,3,2,0,0) X(3,L,abg,3,2,1,0) X(3,L,abb,3,2,2,0) X(3,L,aba,3,2,3,0) X(3,L,aar,3,3,0,0) X(3,L,aag,3,3,1,0) X(3,L,aab,3,3,2,0) X(3,L,aaa,3,3,3,0)
 
-#define VEKL_SWIZZLE4_COMBOS(COMPONENTS, X, LANES) \
-    VEKL_SWIZZLE_COMPONENTS_LEVEL(COMPONENTS, A)(VEKL_SWIZZLE4_A, COMPONENTS, X, LANES)
+#define VEKL_SWIZZLE4_RGBA(X, L) X(4,L,rrrr,0,0,0,0) X(4,L,rrrg,0,0,0,1) X(4,L,rrrb,0,0,0,2) X(4,L,rrra,0,0,0,3) X(4,L,rrgr,0,0,1,0) X(4,L,rrgg,0,0,1,1) X(4,L,rrgb,0,0,1,2) X(4,L,rrga,0,0,1,3) X(4,L,rrbr,0,0,2,0) X(4,L,rrbg,0,0,2,1) X(4,L,rrbb,0,0,2,2) X(4,L,rrba,0,0,2,3) X(4,L,rrar,0,0,3,0) X(4,L,rrag,0,0,3,1) X(4,L,rrab,0,0,3,2) X(4,L,rraa,0,0,3,3) X(4,L,rgrr,0,1,0,0) X(4,L,rgrg,0,1,0,1) X(4,L,rgrb,0,1,0,2) X(4,L,rgra,0,1,0,3) X(4,L,rggr,0,1,1,0) X(4,L,rggg,0,1,1,1) X(4,L,rggb,0,1,1,2) X(4,L,rgga,0,1,1,3) X(4,L,rgbr,0,1,2,0) X(4,L,rgbg,0,1,2,1) X(4,L,rgbb,0,1,2,2) X(4,L,rgba,0,1,2,3) X(4,L,rgar,0,1,3,0) X(4,L,rgag,0,1,3,1) X(4,L,rgab,0,1,3,2) X(4,L,rgaa,0,1,3,3) X(4,L,rbrr,0,2,0,0) X(4,L,rbrg,0,2,0,1) X(4,L,rbrb,0,2,0,2) X(4,L,rbra,0,2,0,3) X(4,L,rbgr,0,2,1,0) X(4,L,rbgg,0,2,1,1) X(4,L,rbgb,0,2,1,2) X(4,L,rbga,0,2,1,3) X(4,L,rbbr,0,2,2,0) X(4,L,rbbg,0,2,2,1) X(4,L,rbbb,0,2,2,2) X(4,L,rbba,0,2,2,3) X(4,L,rbar,0,2,3,0) X(4,L,rbag,0,2,3,1) X(4,L,rbab,0,2,3,2) X(4,L,rbaa,0,2,3,3) X(4,L,rarr,0,3,0,0) X(4,L,rarg,0,3,0,1) X(4,L,rarb,0,3,0,2) X(4,L,rara,0,3,0,3) X(4,L,ragr,0,3,1,0) X(4,L,ragg,0,3,1,1) X(4,L,ragb,0,3,1,2) X(4,L,raga,0,3,1,3) X(4,L,rabr,0,3,2,0) X(4,L,rabg,0,3,2,1) X(4,L,rabb,0,3,2,2) X(4,L,raba,0,3,2,3) X(4,L,raar,0,3,3,0) X(4,L,raag,0,3,3,1) X(4,L,raab,0,3,3,2) X(4,L,raaa,0,3,3,3) X(4,L,grrr,1,0,0,0) X(4,L,grrg,1,0,0,1) X(4,L,grrb,1,0,0,2) X(4,L,grra,1,0,0,3) X(4,L,grgr,1,0,1,0) X(4,L,grgg,1,0,1,1) X(4,L,grgb,1,0,1,2) X(4,L,grga,1,0,1,3) X(4,L,grbr,1,0,2,0) X(4,L,grbg,1,0,2,1) X(4,L,grbb,1,0,2,2) X(4,L,grba,1,0,2,3) X(4,L,grar,1,0,3,0) X(4,L,grag,1,0,3,1) X(4,L,grab,1,0,3,2) X(4,L,graa,1,0,3,3) X(4,L,ggrr,1,1,0,0) X(4,L,ggrg,1,1,0,1) X(4,L,ggrb,1,1,0,2) X(4,L,ggra,1,1,0,3) X(4,L,gggr,1,1,1,0) X(4,L,gggg,1,1,1,1) X(4,L,gggb,1,1,1,2) X(4,L,ggga,1,1,1,3) X(4,L,ggbr,1,1,2,0) X(4,L,ggbg,1,1,2,1) X(4,L,ggbb,1,1,2,2) X(4,L,ggba,1,1,2,3) X(4,L,ggar,1,1,3,0) X(4,L,ggag,1,1,3,1) X(4,L,ggab,1,1,3,2) X(4,L,ggaa,1,1,3,3) X(4,L,gbrr,1,2,0,0) X(4,L,gbrg,1,2,0,1) X(4,L,gbrb,1,2,0,2) X(4,L,gbra,1,2,0,3) X(4,L,gbgr,1,2,1,0) X(4,L,gbgg,1,2,1,1) X(4,L,gbgb,1,2,1,2) X(4,L,gbga,1,2,1,3) X(4,L,gbbr,1,2,2,0) X(4,L,gbbg,1,2,2,1) X(4,L,gbbb,1,2,2,2) X(4,L,gbba,1,2,2,3) X(4,L,gbar,1,2,3,0) X(4,L,gbag,1,2,3,1) X(4,L,gbab,1,2,3,2) X(4,L,gbaa,1,2,3,3) X(4,L,garr,1,3,0,0) X(4,L,garg,1,3,0,1) X(4,L,garb,1,3,0,2) X(4,L,gara,1,3,0,3) X(4,L,gagr,1,3,1,0) X(4,L,gagg,1,3,1,1) X(4,L,gagb,1,3,1,2) X(4,L,gaga,1,3,1,3) X(4,L,gabr,1,3,2,0) X(4,L,gabg,1,3,2,1) X(4,L,gabb,1,3,2,2) X(4,L,gaba,1,3,2,3) X(4,L,gaar,1,3,3,0) X(4,L,gaag,1,3,3,1) X(4,L,gaab,1,3,3,2) X(4,L,gaaa,1,3,3,3) X(4,L,brrr,2,0,0,0) X(4,L,brrg,2,0,0,1) X(4,L,brrb,2,0,0,2) X(4,L,brra,2,0,0,3) X(4,L,brgr,2,0,1,0) X(4,L,brgg,2,0,1,1) X(4,L,brgb,2,0,1,2) X(4,L,brga,2,0,1,3) X(4,L,brbr,2,0,2,0) X(4,L,brbg,2,0,2,1) X(4,L,brbb,2,0,2,2) X(4,L,brba,2,0,2,3) X(4,L,brar,2,0,3,0) X(4,L,brag,2,0,3,1) X(4,L,brab,2,0,3,2) X(4,L,braa,2,0,3,3) X(4,L,bgrr,2,1,0,0) X(4,L,bgrg,2,1,0,1) X(4,L,bgrb,2,1,0,2) X(4,L,bgra,2,1,0,3) X(4,L,bggr,2,1,1,0) X(4,L,bggg,2,1,1,1) X(4,L,bggb,2,1,1,2) X(4,L,bgga,2,1,1,3) X(4,L,bgbr,2,1,2,0) X(4,L,bgbg,2,1,2,1) X(4,L,bgbb,2,1,2,2) X(4,L,bgba,2,1,2,3) X(4,L,bgar,2,1,3,0) X(4,L,bgag,2,1,3,1) X(4,L,bgab,2,1,3,2) X(4,L,bgaa,2,1,3,3) X(4,L,bbrr,2,2,0,0) X(4,L,bbrg,2,2,0,1) X(4,L,bbrb,2,2,0,2) X(4,L,bbra,2,2,0,3) X(4,L,bbgr,2,2,1,0) X(4,L,bbgg,2,2,1,1) X(4,L,bbgb,2,2,1,2) X(4,L,bbga,2,2,1,3) X(4,L,bbbr,2,2,2,0) X(4,L,bbbg,2,2,2,1) X(4,L,bbbb,2,2,2,2) X(4,L,bbba,2,2,2,3) X(4,L,bbar,2,2,3,0) X(4,L,bbag,2,2,3,1) X(4,L,bbab,2,2,3,2) X(4,L,bbaa,2,2,3,3) X(4,L,barr,2,3,0,0) X(4,L,barg,2,3,0,1) X(4,L,barb,2,3,0,2) X(4,L,bara,2,3,0,3) X(4,L,bagr,2,3,1,0) X(4,L,bagg,2,3,1,1) X(4,L,bagb,2,3,1,2) X(4,L,baga,2,3,1,3) X(4,L,babr,2,3,2,0) X(4,L,babg,2,3,2,1) X(4,L,babb,2,3,2,2) X(4,L,baba,2,3,2,3) X(4,L,baar,2,3,3,0) X(4,L,baag,2,3,3,1) X(4,L,baab,2,3,3,2) X(4,L,baaa,2,3,3,3) X(4,L,arrr,3,0,0,0) X(4,L,arrg,3,0,0,1) X(4,L,arrb,3,0,0,2) X(4,L,arra,3,0,0,3) X(4,L,argr,3,0,1,0) X(4,L,argg,3,0,1,1) X(4,L,argb,3,0,1,2) X(4,L,arga,3,0,1,3) X(4,L,arbr,3,0,2,0) X(4,L,arbg,3,0,2,1) X(4,L,arbb,3,0,2,2) X(4,L,arba,3,0,2,3) X(4,L,arar,3,0,3,0) X(4,L,arag,3,0,3,1) X(4,L,arab,3,0,3,2) X(4,L,araa,3,0,3,3) X(4,L,agrr,3,1,0,0) X(4,L,agrg,3,1,0,1) X(4,L,agrb,3,1,0,2) X(4,L,agra,3,1,0,3) X(4,L,aggr,3,1,1,0) X(4,L,aggg,3,1,1,1) X(4,L,aggb,3,1,1,2) X(4,L,agga,3,1,1,3) X(4,L,agbr,3,1,2,0) X(4,L,agbg,3,1,2,1) X(4,L,agbb,3,1,2,2) X(4,L,agba,3,1,2,3) X(4,L,agar,3,1,3,0) X(4,L,agag,3,1,3,1) X(4,L,agab,3,1,3,2) X(4,L,agaa,3,1,3,3) X(4,L,abrr,3,2,0,0) X(4,L,abrg,3,2,0,1) X(4,L,abrb,3,2,0,2) X(4,L,abra,3,2,0,3) X(4,L,abgr,3,2,1,0) X(4,L,abgg,3,2,1,1) X(4,L,abgb,3,2,1,2) X(4,L,abga,3,2,1,3) X(4,L,abbr,3,2,2,0) X(4,L,abbg,3,2,2,1) X(4,L,abbb,3,2,2,2) X(4,L,abba,3,2,2,3) X(4,L,abar,3,2,3,0) X(4,L,abag,3,2,3,1) X(4,L,abab,3,2,3,2) X(4,L,abaa,3,2,3,3) X(4,L,aarr,3,3,0,0) X(4,L,aarg,3,3,0,1) X(4,L,aarb,3,3,0,2) X(4,L,aara,3,3,0,3) X(4,L,aagr,3,3,1,0) X(4,L,aagg,3,3,1,1) X(4,L,aagb,3,3,1,2) X(4,L,aaga,3,3,1,3) X(4,L,aabr,3,3,2,0) X(4,L,aabg,3,3,2,1) X(4,L,aabb,3,3,2,2) X(4,L,aaba,3,3,2,3) X(4,L,aaar,3,3,3,0) X(4,L,aaag,3,3,3,1) X(4,L,aaab,3,3,3,2) X(4,L,aaaa,3,3,3,3)
 
-#define VEKL_SWIZZLE4_A(COMPONENTS, X, LANES, A_NAME, A_INDEX) \
-    VEKL_SWIZZLE_COMPONENTS_LEVEL(COMPONENTS, B)(VEKL_SWIZZLE4_B, COMPONENTS, X, LANES, A_NAME, A_INDEX)
+#define VEKL_FLOAT2_SWIZZLES(X) VEKL_SWIZZLE2_XY(X, 2) VEKL_SWIZZLE3_XY(X, 2) VEKL_SWIZZLE4_XY(X, 2)
 
-#define VEKL_SWIZZLE4_B(COMPONENTS, X, LANES, A_NAME, A_INDEX, B_NAME, B_INDEX) \
-    VEKL_SWIZZLE_COMPONENTS_LEVEL(COMPONENTS, C)(VEKL_SWIZZLE4_C, COMPONENTS, X, LANES, A_NAME, A_INDEX, B_NAME, B_INDEX)
+#define VEKL_FLOAT3_SWIZZLES(X) VEKL_SWIZZLE2_XYZ(X, 3) VEKL_SWIZZLE3_XYZ(X, 3) VEKL_SWIZZLE4_XYZ(X, 3) VEKL_SWIZZLE2_RGB(X, 3) VEKL_SWIZZLE3_RGB(X, 3) VEKL_SWIZZLE4_RGB(X, 3)
 
-#define VEKL_SWIZZLE4_C(COMPONENTS, X, LANES, A_NAME, A_INDEX, B_NAME, B_INDEX, C_NAME, C_INDEX) \
-    VEKL_SWIZZLE_COMPONENTS_LEVEL(COMPONENTS, D)(VEKL_SWIZZLE4_D, X, LANES, A_NAME, A_INDEX, B_NAME, B_INDEX, C_NAME, C_INDEX)
-
-#define VEKL_SWIZZLE4_D(X, LANES, A_NAME, A_INDEX, B_NAME, B_INDEX, C_NAME, C_INDEX, D_NAME, D_INDEX) \
-    X(4, LANES, A_NAME##B_NAME##C_NAME##D_NAME, A_INDEX, B_INDEX, C_INDEX, D_INDEX)
-
-#define VEKL_FLOAT2_SWIZZLES(X) \
-    VEKL_SWIZZLE2_COMBOS(VEKL_SWIZZLE_COMPONENTS_XY, X, 2) \
-    VEKL_SWIZZLE3_COMBOS(VEKL_SWIZZLE_COMPONENTS_XY, X, 2) \
-    VEKL_SWIZZLE4_COMBOS(VEKL_SWIZZLE_COMPONENTS_XY, X, 2)
-
-#define VEKL_FLOAT3_SWIZZLES(X) \
-    VEKL_SWIZZLE2_COMBOS(VEKL_SWIZZLE_COMPONENTS_XYZ, X, 3) \
-    VEKL_SWIZZLE3_COMBOS(VEKL_SWIZZLE_COMPONENTS_XYZ, X, 3) \
-    VEKL_SWIZZLE4_COMBOS(VEKL_SWIZZLE_COMPONENTS_XYZ, X, 3) \
-    VEKL_SWIZZLE2_COMBOS(VEKL_SWIZZLE_COMPONENTS_RGB, X, 3) \
-    VEKL_SWIZZLE3_COMBOS(VEKL_SWIZZLE_COMPONENTS_RGB, X, 3) \
-    VEKL_SWIZZLE4_COMBOS(VEKL_SWIZZLE_COMPONENTS_RGB, X, 3)
-
-#define VEKL_FLOAT4_SWIZZLES(X) \
-    VEKL_SWIZZLE2_COMBOS(VEKL_SWIZZLE_COMPONENTS_XYZW, X, 4) \
-    VEKL_SWIZZLE3_COMBOS(VEKL_SWIZZLE_COMPONENTS_XYZW, X, 4) \
-    VEKL_SWIZZLE4_COMBOS(VEKL_SWIZZLE_COMPONENTS_XYZW, X, 4) \
-    VEKL_SWIZZLE2_COMBOS(VEKL_SWIZZLE_COMPONENTS_RGBA, X, 4) \
-    VEKL_SWIZZLE3_COMBOS(VEKL_SWIZZLE_COMPONENTS_RGBA, X, 4) \
-    VEKL_SWIZZLE4_COMBOS(VEKL_SWIZZLE_COMPONENTS_RGBA, X, 4)
+#define VEKL_FLOAT4_SWIZZLES(X) VEKL_SWIZZLE2_XYZW(X, 4) VEKL_SWIZZLE3_XYZW(X, 4) VEKL_SWIZZLE4_XYZW(X, 4) VEKL_SWIZZLE2_RGBA(X, 4) VEKL_SWIZZLE3_RGBA(X, 4) VEKL_SWIZZLE4_RGBA(X, 4)
 
 #define VEKL_DECLARE_SWIZZLE(RANK, LANES, NAME, A, B, C, D) \
     VEKL_DECLARE_SWIZZLE_IMPL(RANK, LANES, NAME, A, B, C, D)

@@ -42,6 +42,7 @@ typedef unsigned short ushort;
 #define exp2f(x)    exp2(x)
 #define sinf(x)     sin(x)
 #define cosf(x)     cos(x)
+#define atan2f(y,x) atan2(y,x)
 #define floorf(x)   floor(x)
 #define fabsf(x)    fabs(x)
 #define fmodf(x, y) fmod(x, y)
@@ -49,6 +50,7 @@ typedef unsigned short ushort;
 #define powf(x, y)  pow(x, y)
 #define fminf(x, y) fmin(x, y)
 #define fmaxf(x, y) fmax(x, y)
+#define fmaf(a,b,c) fma(a,b,c)
 
 #define VEKL_EXP2F exp2f
 #define VEKL_BACKEND_NAME "metal"
