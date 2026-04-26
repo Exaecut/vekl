@@ -77,6 +77,22 @@ inline float oklab_cbrt(float x) {
     return (x >= 0.0f) ? powf(x, 1.0f / 3.0f) : -powf(-x, 1.0f / 3.0f);
 }
 
+#ifdef VEKL_CPU
+inline float oklab_cbrt_fast(float x) {
+    float ax = fabsf(x);
+    uint32_t i;
+    memcpy(&i, &ax, sizeof(i));
+    i = (i / 3u) + 0x2A51067Eu;
+    float y;
+
+    memcpy(&y, &i, sizeof(y));
+    y = (2.0f * y + ax / (y * y)) * (1.0f / 3.0f);
+    return (x >= 0.0f) ? y : -y;
+}
+// On CPU, override oklab_cbrt with the fast variant for all callers
+#define oklab_cbrt oklab_cbrt_fast
+#endif
+
 // Linear sRGB → OKLab (Björn Ottosson 2020).
 // Input: linear sRGB in [0,1]. Output: L in [0,1], a/b unbounded.
 inline float3 linear_srgb_to_oklab(float3 c) {
@@ -215,9 +231,7 @@ inline float3 fit_oklch_to_srgb(float3 lch) {
     return lch;
 }
 
-// Precomputed variant: caller provides cos/sin of the shift angle,
-// avoiding per-pixel transcendentals when the shift is constant.
-inline float3 hue_shift_oklab_fast(float3 srgb, float cos_s, float sin_s) {
+inline float3 hue_shift_oklab(float3 srgb, float shift_radians) {
     float3 linear = srgb_to_linear(srgb);
     float3 lab = linear_srgb_to_oklab(linear);
 
@@ -227,9 +241,9 @@ inline float3 hue_shift_oklab_fast(float3 srgb, float cos_s, float sin_s) {
         return srgb;
     }
 
-    // Rotate hue directly in the OKLab (a,b) plane.
-    // Equivalent to oklab→oklch→rotate→oklab but avoids
-    // sqrtf, atan2f, fmodf, cosf, sinf per pixel.
+    // Rotate hue directly in the OKLab (a,b) plane
+    float cos_s = cosf(shift_radians);
+    float sin_s = sinf(shift_radians);
     float a = lab.y * cos_s - lab.z * sin_s;
     float b = lab.y * sin_s + lab.z * cos_s;
     float3 lab_shifted = float3(lab.x, a, b);
@@ -245,10 +259,6 @@ inline float3 hue_shift_oklab_fast(float3 srgb, float cos_s, float sin_s) {
     lch = fit_oklch_to_srgb(lch);
     float3 rgb_clipped = oklab_to_linear_srgb(oklch_to_oklab(lch));
     return saturate(linear_to_srgb(rgb_clipped));
-}
-
-inline float3 hue_shift_oklab(float3 srgb, float shift_radians) {
-    return hue_shift_oklab_fast(srgb, cosf(shift_radians), sinf(shift_radians));
 }
 
 #endif
