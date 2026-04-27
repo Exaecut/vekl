@@ -35,6 +35,79 @@ struct VeklLogBuffer {
 	VeklLogEntry entries[VEKL_LOG_CAPACITY];
 };
 
+// Cross-platform string builder for log messages.
+// Works on all backends including CUDA/Metal where snprintf is unavailable.
+// Usage: LogFormat().str("w=").u(width).str(" uv=(").f(uv.x).c(',').f(uv.y).c(')')
+//        then pass fmt.c_str() to log.info() etc.
+struct LogFormat {
+	char buf[VEKL_LOG_MESSAGE_CAPACITY];
+	unsigned int pos;
+
+	forceinline LogFormat() : pos(0) { buf[0] = '\0'; }
+
+	forceinline const char* c_str() const { return buf; }
+
+	forceinline LogFormat& str(const char* s) {
+		if (s == nullptr) return *this;
+		while (*s && pos < VEKL_LOG_MESSAGE_CAPACITY - 1u) {
+			buf[pos++] = *s++;
+		}
+		buf[pos] = '\0';
+		return *this;
+	}
+
+	forceinline LogFormat& c(char ch) {
+		if (pos < VEKL_LOG_MESSAGE_CAPACITY - 1u) {
+			buf[pos++] = ch;
+			buf[pos] = '\0';
+		}
+		return *this;
+	}
+
+	forceinline LogFormat& u(unsigned int v) {
+		if (v == 0u) { c('0'); return *this; }
+		char digits[12];
+		int i = 0;
+		while (v > 0u && i < 12) {
+			digits[i++] = '0' + (char)(v % 10u);
+			v /= 10u;
+		}
+		for (int j = i - 1; j >= 0; j--) {
+			c(digits[j]);
+		}
+		return *this;
+	}
+
+	forceinline LogFormat& d(int v) {
+		if (v < 0) {
+			c('-');
+			u((unsigned int)(-(v + 1)) + 1u);
+			return *this;
+		}
+		u((unsigned int)v);
+		return *this;
+	}
+
+	forceinline LogFormat& f(float v) {
+		if (v != v) { str("nan"); return *this; }
+		if (v > 1e30f) { str("inf"); return *this; }
+		if (v < -1e30f) { str("-inf"); return *this; }
+		if (v < 0.0f) { c('-'); v = -v; }
+		unsigned int intPart = (unsigned int)v;
+		u(intPart);
+		c('.');
+		float frac = v - (float)intPart;
+		for (int i = 0; i < 4; i++) {
+			frac *= 10.0f;
+			unsigned int digit = (unsigned int)frac;
+			if (digit > 9u) digit = 9u;
+			c('0' + (char)digit);
+			frac -= (float)digit;
+		}
+		return *this;
+	}
+};
+
 struct noop_logging_channel {
 	const char* channel_name;
 	inline void trace(const char*) const {}

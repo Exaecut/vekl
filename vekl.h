@@ -37,4 +37,5 @@
 #include "sdf/shapes.h"
 
 #include "filters/blur.h"
+#include "filters/radial_blur.h"
 #include "filters/envelope.h"
