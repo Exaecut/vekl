@@ -134,6 +134,7 @@ void host_log(unsigned int level, const char* message);
 
 #if defined(DISABLE_LOGGING) || !defined(DEBUG)
 typedef noop_logging_channel logging_channel;
+#define logging (noop_logging_channel{"default"})
 #else
 struct logging_channel {
 	const char* channel_name;
@@ -155,4 +156,4 @@ private:
 #endif
 
 static logging_channel __vekl_default_log = {"default"};
-#define log (__vekl_default_log)
+#define logging (__vekl_default_log)

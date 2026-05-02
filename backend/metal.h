@@ -158,5 +158,5 @@ struct logging_channel {
 #define logging (noop_logging_channel{"default"})
 #else
 constant logging_channel __vekl_default_log {"default"};
-#define log (__vekl_default_log)
+#define logging (__vekl_default_log)
 #endif
