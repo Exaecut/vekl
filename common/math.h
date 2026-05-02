@@ -6,17 +6,29 @@
 #define VEKL_EXP2F exp2f
 #endif
 
+// Guard vekl math overloads against C++ standard library conflicts.
+// When compiled as C++ (CPU backend), <cmath>/<math.h> already provides
+// float overloads for abs, pow, sin, exp2, etc. in the global namespace.
+// Redeclaring them causes "missing noexcept" and "declaration conflicts
+// with target of using declaration" errors.  We only define our own
+// overloads when they are truly missing (plain C compilation).
+#ifdef __cplusplus
+// C++: the standard library provides scalar float overloads already.
+// We only need to supplement with vekl-specific helpers that don't
+// exist in <cmath>.
+#else
 inline float abs(float a) { return fabsf(a); }
+inline float pow(float x, float y) { return powf(x, y); }
+inline float sin(float x) { return sinf(x); }
+inline float exp2(float x) { return VEKL_EXP2F(x); }
+#endif
+
 inline float min(float a, float b) { return fminf(a, b); }
 inline float max(float a, float b) { return fmaxf(a, b); }
 
 inline float clamp(float v, float lo, float hi) { return fminf(fmaxf(v, lo), hi); }
 
 inline float saturate(float v) { return clamp(v, 0.0f, 1.0f); }
-inline float pow(float x, float y) { return powf(x, y); }
-inline float sin(float x) { return sinf(x); }
-inline float2 sin(float2 a) { return float2(sinf(a.x), sinf(a.y)); }
-inline float exp2(float x) { return VEKL_EXP2F(x); }
 inline float sign(float v) { return (v > 0.0f) ? 1.0f : ((v < 0.0f) ? -1.0f : 0.0f); }
 
 inline float mix(float a, float b, float t) { return a + (b - a) * t; }
@@ -33,6 +45,7 @@ inline float2 clamp(float2 v, float lo, float hi) { return float2(clamp(v.x, lo,
 inline float2 min(float2 a, float2 b) { return float2(fminf(a.x, b.x), fminf(a.y, b.y)); }
 inline float2 max(float2 a, float2 b) { return float2(fmaxf(a.x, b.x), fmaxf(a.y, b.y)); }
 inline float2 mix(float2 a, float2 b, float t) { return a + (b - a) * t; }
+inline float2 sin(float2 a) { return float2(sinf(a.x), sinf(a.y)); }
 
 inline float dot(float2 a, float2 b) { return a.x * b.x + a.y * b.y; }
 inline float dot(float3 a, float3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
