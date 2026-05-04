@@ -1,6 +1,6 @@
 implementing vekl;
 
-float4 ToRGBA(float4 c, PixelLayout layout)
+public float4 ToRGBA(float4 c, PixelLayout layout)
 {
     switch (layout)
     {
@@ -37,7 +37,7 @@ float4 ToRGBA(float4 c, PixelLayout layout)
     }
 }
 
-float4 FromRGBA(float4 c, PixelLayout layout)
+public float4 FromRGBA(float4 c, PixelLayout layout)
 {
     switch (layout)
     {
