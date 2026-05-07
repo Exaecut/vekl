@@ -3,9 +3,9 @@
 VEKL is an open-source, modular compute kernel library written in
 [Slang](https://shader-slang.com/) for developing high-performance video
 effects and transitions. It provides reusable primitives for pixel I/O,
-texture sampling, coordinate transforms, noise generation, filtering, and
-color blending — all compiled through Slang's cross-platform compiler to
-CUDA, Metal, and other GPU backends.
+texture sampling (single-level and mip-chain), coordinate transforms,
+noise generation, filtering, and color blending — all compiled through
+Slang's cross-platform compiler to CUDA, Metal, and other GPU backends.
 
 > License: Apache-2.0
 
@@ -16,6 +16,7 @@ GPU video effects share the same building blocks across every project:
 - Reading and writing pixels in multiple formats (8-bit, 16-bit, 32-bit float)
 - Converting between pixel layouts (RGBA, BGRA, VUYA 601/709)
 - Sampling textures with nearest, bilinear, or repeat/mirror addressing
+- Sampling mip chains (single buffer, byte-addressed) with trilinear lod
 - Computing UV coordinates, rotations, and aspect-correct transforms
 - Generating noise patterns for organic effects
 - Applying separable Gaussian blur

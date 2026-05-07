@@ -104,6 +104,24 @@ void StorePixel(RWStructuredBuffer<uint> data, uint pitchBytes, uint2 xy,
 Convert from RGBA working space and write. Equivalent to
 `StorePixelRaw(..., FromRGBA(c, layout), ...)`.
 
+### `baseWords` overloads (mip chain)
+
+Every `LoadPixel*` / `StorePixel*` form takes an optional trailing
+`baseWords` argument that shifts the read or write window forward by a
+whole-word offset. The no-`baseWords` wrappers are equivalent to
+`baseWords = 0u` and remain the right call for single-level buffers.
+
+```cpp
+// Read from the start of mip level `lod` inside a packed mip chain.
+uint baseWords = desc.mipOffsetBytes[lod] / 4u;
+float4 c = LoadPixel(buffer, desc.mipPitchBytes[lod], pixel,
+                     desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
+```
+
+`TextureView::Load(pixel, lod)` / `SampleLinear(uv, lod)` and
+`RWTextureView::Load(pixel, lod)` / `Store(pixel, value, lod)` wrap this
+computation automatically — effect authors rarely call the raw form.
+
 ---
 
 ## Address Helpers
