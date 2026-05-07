@@ -1,5 +1,7 @@
 implementing vekl;
 
+__include "color/accumulate";
+
 __include "color/blend/add";
 __include "color/blend/multiply";
 __include "color/blend/screen";
