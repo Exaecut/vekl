@@ -70,10 +70,54 @@ public float4 FromRGBA(float4 c, PixelLayout layout)
     }
 }
 
-float4 LoadPixelRaw(StructuredBuffer<uint> data, uint pitchBytes, uint2 xy, uint bytesPerPixel, PixelStorage storage)
+// `baseWords` shifts the read window forward by a whole-word offset so
+// mip-chain callers can read a non-zero lod from the same buffer. Callers
+// reading lod 0 pass `0u` and the result is identical to the legacy form.
+float4 LoadPixelRaw(StructuredBuffer<uint> data, uint pitchBytes, uint2 xy, uint bytesPerPixel, PixelStorage storage, uint baseWords)
 {
     uint byteOffset = xy.y * pitchBytes + xy.x * bytesPerPixel;
-    uint wordOffset = byteOffset / 4;
+    uint wordOffset = baseWords + byteOffset / 4;
+
+    if (storage == PixelStorage.Unorm8x4)
+    {
+        uint packed = data[wordOffset];
+        return float4(
+            float((packed) & 0xFF) / 255.0,
+            float((packed >> 8) & 0xFF) / 255.0,
+            float((packed >> 16) & 0xFF) / 255.0,
+            float((packed >> 24) & 0xFF) / 255.0
+        );
+    }
+    else if (storage == PixelStorage.Unorm16x4)
+    {
+        uint lo = data[wordOffset];
+        uint hi = data[wordOffset + 1];
+        return float4(
+            float(lo & 0xFFFF) / 65535.0,
+            float(lo >> 16) / 65535.0,
+            float(hi & 0xFFFF) / 65535.0,
+            float(hi >> 16) / 65535.0
+        );
+    }
+    else
+    {
+        uint w0 = data[wordOffset];
+        uint w1 = data[wordOffset + 1];
+        uint w2 = data[wordOffset + 2];
+        uint w3 = data[wordOffset + 3];
+        return float4(asfloat(w0), asfloat(w1), asfloat(w2), asfloat(w3));
+    }
+}
+
+float4 LoadPixelRaw(StructuredBuffer<uint> data, uint pitchBytes, uint2 xy, uint bytesPerPixel, PixelStorage storage)
+{
+    return LoadPixelRaw(data, pitchBytes, xy, bytesPerPixel, storage, 0u);
+}
+
+float4 LoadPixelRaw(RWStructuredBuffer<uint> data, uint pitchBytes, uint2 xy, uint bytesPerPixel, PixelStorage storage, uint baseWords)
+{
+    uint byteOffset = xy.y * pitchBytes + xy.x * bytesPerPixel;
+    uint wordOffset = baseWords + byteOffset / 4;
 
     if (storage == PixelStorage.Unorm8x4)
     {
@@ -108,44 +152,13 @@ float4 LoadPixelRaw(StructuredBuffer<uint> data, uint pitchBytes, uint2 xy, uint
 
 float4 LoadPixelRaw(RWStructuredBuffer<uint> data, uint pitchBytes, uint2 xy, uint bytesPerPixel, PixelStorage storage)
 {
-    uint byteOffset = xy.y * pitchBytes + xy.x * bytesPerPixel;
-    uint wordOffset = byteOffset / 4;
-
-    if (storage == PixelStorage.Unorm8x4)
-    {
-        uint packed = data[wordOffset];
-        return float4(
-            float((packed) & 0xFF) / 255.0,
-            float((packed >> 8) & 0xFF) / 255.0,
-            float((packed >> 16) & 0xFF) / 255.0,
-            float((packed >> 24) & 0xFF) / 255.0
-        );
-    }
-    else if (storage == PixelStorage.Unorm16x4)
-    {
-        uint lo = data[wordOffset];
-        uint hi = data[wordOffset + 1];
-        return float4(
-            float(lo & 0xFFFF) / 65535.0,
-            float(lo >> 16) / 65535.0,
-            float(hi & 0xFFFF) / 65535.0,
-            float(hi >> 16) / 65535.0
-        );
-    }
-    else
-    {
-        uint w0 = data[wordOffset];
-        uint w1 = data[wordOffset + 1];
-        uint w2 = data[wordOffset + 2];
-        uint w3 = data[wordOffset + 3];
-        return float4(asfloat(w0), asfloat(w1), asfloat(w2), asfloat(w3));
-    }
+    return LoadPixelRaw(data, pitchBytes, xy, bytesPerPixel, storage, 0u);
 }
 
-void StorePixelRaw(RWStructuredBuffer<uint> data, uint pitchBytes, uint2 xy, float4 c, uint bytesPerPixel, PixelStorage storage)
+void StorePixelRaw(RWStructuredBuffer<uint> data, uint pitchBytes, uint2 xy, float4 c, uint bytesPerPixel, PixelStorage storage, uint baseWords)
 {
     uint byteOffset = xy.y * pitchBytes + xy.x * bytesPerPixel;
-    uint wordOffset = byteOffset / 4;
+    uint wordOffset = baseWords + byteOffset / 4;
 
     if (storage == PixelStorage.Unorm8x4)
     {
@@ -171,19 +184,39 @@ void StorePixelRaw(RWStructuredBuffer<uint> data, uint pitchBytes, uint2 xy, flo
     }
 }
 
+void StorePixelRaw(RWStructuredBuffer<uint> data, uint pitchBytes, uint2 xy, float4 c, uint bytesPerPixel, PixelStorage storage)
+{
+    StorePixelRaw(data, pitchBytes, xy, c, bytesPerPixel, storage, 0u);
+}
+
+public float4 LoadPixel(StructuredBuffer<uint> data, uint pitchBytes, uint2 xy, uint bytesPerPixel, PixelStorage storage, PixelLayout layout, uint baseWords)
+{
+    return ToRGBA(LoadPixelRaw(data, pitchBytes, xy, bytesPerPixel, storage, baseWords), layout);
+}
+
 public float4 LoadPixel(StructuredBuffer<uint> data, uint pitchBytes, uint2 xy, uint bytesPerPixel, PixelStorage storage, PixelLayout layout)
 {
-    return ToRGBA(LoadPixelRaw(data, pitchBytes, xy, bytesPerPixel, storage), layout);
+    return LoadPixel(data, pitchBytes, xy, bytesPerPixel, storage, layout, 0u);
+}
+
+public float4 LoadPixel(RWStructuredBuffer<uint> data, uint pitchBytes, uint2 xy, uint bytesPerPixel, PixelStorage storage, PixelLayout layout, uint baseWords)
+{
+    return ToRGBA(LoadPixelRaw(data, pitchBytes, xy, bytesPerPixel, storage, baseWords), layout);
 }
 
 public float4 LoadPixel(RWStructuredBuffer<uint> data, uint pitchBytes, uint2 xy, uint bytesPerPixel, PixelStorage storage, PixelLayout layout)
 {
-    return ToRGBA(LoadPixelRaw(data, pitchBytes, xy, bytesPerPixel, storage), layout);
+    return LoadPixel(data, pitchBytes, xy, bytesPerPixel, storage, layout, 0u);
+}
+
+public void StorePixel(RWStructuredBuffer<uint> data, uint pitchBytes, uint2 xy, float4 c, uint bytesPerPixel, PixelStorage storage, PixelLayout layout, uint baseWords)
+{
+    StorePixelRaw(data, pitchBytes, xy, FromRGBA(c, layout), bytesPerPixel, storage, baseWords);
 }
 
 public void StorePixel(RWStructuredBuffer<uint> data, uint pitchBytes, uint2 xy, float4 c, uint bytesPerPixel, PixelStorage storage, PixelLayout layout)
 {
-    StorePixelRaw(data, pitchBytes, xy, FromRGBA(c, layout), bytesPerPixel, storage);
+    StorePixel(data, pitchBytes, xy, c, bytesPerPixel, storage, layout, 0u);
 }
 
 uint2 AddressClamp(uint2 xy, uint2 sizePx)
