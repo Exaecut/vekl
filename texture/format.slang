@@ -70,9 +70,7 @@ public float4 FromRGBA(float4 c, PixelLayout layout)
     }
 }
 
-// `baseWords` shifts the read window forward by a whole-word offset so
-// mip-chain callers can read a non-zero lod from the same buffer. Callers
-// reading lod 0 pass `0u` and the result is identical to the legacy form.
+// `baseWords` shifts the read window by a whole-word offset so mip-chain callers can read non-zero lod from the same buffer; lod-0 callers pass `0u`.
 float4 LoadPixelRaw(StructuredBuffer<uint> data, uint pitchBytes, uint2 xy, uint bytesPerPixel, PixelStorage storage, uint baseWords)
 {
     uint byteOffset = xy.y * pitchBytes + xy.x * bytesPerPixel;

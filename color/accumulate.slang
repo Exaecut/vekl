@@ -1,48 +1,27 @@
 implementing vekl;
 
 // Color-property-preserving accumulators for multi-tap effects (radial blur,
-// motion blur, bokeh, etc.).
+// motion blur, bokeh).
 //
-// The naive `sum_rgba += sample; sum_w += weight` approach has two well-known
-// failure modes that strip color from the result:
+// Naive `sum_rgba += sample; sum_w += weight` strips color two ways:
+//   * Alpha-edge darkening — averaging straight RGBA pulls semi-transparent
+//     pixels' RGB toward zero. Accumulate premultiplied (rgb*a, a) and divide
+//     by the summed weight (NOT alpha) to get a perceptually correct mix.
+//   * Chroma washout — a weighted average of N pixels with similar luma but
+//     slightly different hues desaturates the middle. Track mean per-sample
+//     saturation and re-saturate at the end to recover lost chroma without
+//     altering hue.
 //
-//   1. Alpha-edge darkening. Averaging straight RGBA pulls semi-transparent
-//      pixels' RGB toward zero (because their RGB is "off" outside the alpha
-//      mask). Accumulating *premultiplied* (rgb*a, a) and dividing by the
-//      summed weight (NOT by alpha) produces a result that is itself
-//      premultiplied; un-premultiplying gives the perceptually correct
-//      mix.
-//
-//   2. Chroma washout. A weighted average of N pixels with similar luminance
-//      but slightly different hues yields a desaturated middle. The mean
-//      saturation across samples is *higher* than the saturation of the mean
-//      RGB. We track the mean saturation and gently re-saturate at the end
-//      to recover that lost chroma without altering hue.
-//
-// `SweepAccumulator` is sampling-shape agnostic - it consumes (RGBA, weight)
-// tuples and produces a chroma-correct mean, regardless of whether the source
-// samples come from `AngularSample`, `RadialSample`, a linear path, a Gaussian
-// blur, or any other multi-tap operator. Use:
-//
-//     SweepAccumulator acc = SweepAccumulator.Create();
-//     for (uint i = 0; i < N; ++i) {
-//         SweepSample s = AngularSample(uv, center, angle, i, opts);
-//         float4 px = src.SampleLinear(saturate(s.uv));
-//         acc.Add(px, s.weight);
-//     }
-//     float4 result = acc.Resolve(/*restoreSaturation*/ 1.0);
-//
-// `restoreSaturation` in [0..1]:
-//   0 = naive premultiplied mean (no chroma boost)
-//   1 = full chroma restore (target mean per-sample saturation)
+// `SweepAccumulator` is sampling-shape agnostic; consume `(RGBA, weight)` from
+// any source and call `Resolve(restoreSaturation)` (0 = naive premultiplied
+// mean, 1 = full chroma restore).
 
 public struct SweepAccumulator
 {
-    /// Sum of premultiplied RGBA: (rgb * a * w, a * w)
+    /// Sum of premultiplied RGBA: (rgb * a * w, a * w).
     public float4 sumPremul;
-    /// Sum of weights.
     public float  sumW;
-    /// Sum of per-sample saturation * weight. Used by Resolve() to restore.
+    /// Sum of per-sample saturation × weight; `Resolve()` uses it to restore chroma.
     public float  sumSatW;
 
     public static SweepAccumulator Create()
@@ -54,8 +33,7 @@ public struct SweepAccumulator
         return a;
     }
 
-    /// Add a sample. `px` is straight (un-premultiplied) RGBA from a texture
-    /// fetch; `weight` >= 0.
+    /// Add a sample. `px` is straight (un-premultiplied) RGBA; `weight >= 0`.
     [mutating]
     public void Add(float4 px, float weight)
     {
@@ -65,22 +43,19 @@ public struct SweepAccumulator
         sumSatW   += SampleSaturation(px.rgb) * w;
     }
 
-    /// Resolve to a final straight RGBA. `restoreSaturation` in [0,1] mixes
-    /// between the raw averaged RGB (0) and a chroma-restored RGB (1) that
-    /// targets the weighted mean per-sample saturation.
+    /// Resolve to a final straight RGBA. `restoreSaturation` in [0, 1]:
+    /// 0 = raw averaged RGB, 1 = chroma-restored to the weighted mean per-sample saturation.
     public float4 Resolve(float restoreSaturation)
     {
         float invW = (sumW > 1e-6) ? 1.0 / sumW : 0.0;
-        float4 premul = sumPremul * invW;            // premultiplied mean
+        float4 premul = sumPremul * invW;            
         float  alpha  = premul.a;
         float3 rgb    = (alpha > 1e-5) ? premul.rgb / alpha : float3(0.0, 0.0, 0.0);
 
         float meanSat   = sumSatW * invW;
         float resultSat = SampleSaturation(rgb);
         float boost     = (resultSat > 1e-5) ? meanSat / resultSat : 1.0;
-        // Clamp so we never over-pump (1.0 means "match", we cap at 2x to
-        // avoid runaway when two near-equal-luma complementary hues average
-        // to a near-grey).
+        // Cap chroma boost at 2× to avoid runaway when two near-equal-luma complementary hues average to grey.
         boost = clamp(boost, 1.0, 2.0);
 
         float3 luma = float3(SampleLuma(rgb), SampleLuma(rgb), SampleLuma(rgb));
@@ -89,7 +64,6 @@ public struct SweepAccumulator
     }
 }
 
-// --- Lightweight luma / saturation helpers (Rec.709) ------------------------
 
 internal float SampleLuma(float3 c)
 {

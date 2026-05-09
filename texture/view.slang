@@ -1,8 +1,6 @@
 implementing vekl;
 
-// Returns a safe mip level index: clamped to `[0, mipLevelCount-1]` so
-// callers that request an out-of-range lod degrade gracefully instead of
-// reading garbage. A 1-level descriptor always returns 0.
+// Returns a safe mip lod clamped to `[0, mipLevelCount-1]` so out-of-range requests degrade gracefully. A 1-level descriptor always returns 0.
 uint MipLod(TextureDesc desc, uint lod)
 {
     return min(lod, max(desc.mipLevelCount, 1u) - 1u);
@@ -110,8 +108,8 @@ public struct TextureView
     }
 
     /// Trilinear sampler: lerps between mip levels `floor(lodF)` and `ceil(lodF)`.
-    /// Use this from kernels that pick a continuous lod per pixel (pyramidal
-    /// blur / glow) to avoid visible seams at mip boundaries.
+    /// Use from kernels that pick a continuous lod per pixel (pyramidal blur / glow)
+    /// to avoid visible seams at mip boundaries.
     public float4 SampleLinearTrilinear(float2 uv, float lodF)
     {
         float maxL = float(max(desc.mipLevelCount, 1u) - 1u);

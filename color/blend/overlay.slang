@@ -1,7 +1,6 @@
 implementing vekl;
 
-/// Overlay: Multiply where base < 0.5, Screen otherwise. Boosts contrast.
-/// Per-channel branch — float3-only.
+/// Overlay: Multiply where base < 0.5, Screen otherwise. Per-channel branch — float3 only.
 public float3 BlendOverlay(float3 base, float3 blend)
 {
     float3 r;

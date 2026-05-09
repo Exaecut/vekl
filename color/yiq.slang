@@ -1,9 +1,8 @@
 implementing vekl;
 
-// Rec.601 (NTSC) luma/chroma decomposition. YIQ separates luminance (Y)
-// from in-phase (I) and quadrature (Q) chroma components, which is how
-// NTSC broadcast encoded color. Useful for VHS / analog-TV style effects
-// where chroma is subsampled or distorted independently of luma.
+// Rec.601 (NTSC) luma/chroma split. YIQ separates luminance Y from in-phase I
+// and quadrature Q chroma. Useful for VHS / analog-TV style effects where
+// chroma is subsampled or distorted independently of luma.
 
 /// RGB → YIQ (Rec.601). Returns `(Y, I, Q)`.
 public float3 RGBToYIQ(float3 rgb)
@@ -15,7 +14,7 @@ public float3 RGBToYIQ(float3 rgb)
     );
 }
 
-/// YIQ → RGB (Rec.601). Inverse of [`RGBToYIQ`].
+/// YIQ → RGB (Rec.601). Inverse of `RGBToYIQ`.
 public float3 YIQToRGB(float3 yiq)
 {
     return float3(

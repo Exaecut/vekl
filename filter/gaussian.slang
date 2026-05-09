@@ -15,12 +15,11 @@ public float4 Gaussian1d(TextureView tex, float2 uv, float sigma, int radius, bo
     float4 sum = float4(0.0, 0.0, 0.0, 0.0);
     float weightSum = 0.0;
 
-    // Centre tap
     float wc = GaussianWeight1d(0, sigma);
     sum += tex.SampleLinear(uv) * wc;
     weightSum += wc;
 
-    // Stride-2: each iteration covers two texel offsets (2i-1, 2i)
+    // Stride-2: each iteration covers texel offsets (2i-1, 2i).
     const int half = radius / 2;
     for (int i = 1; i <= half; ++i)
     {
@@ -38,7 +37,7 @@ public float4 Gaussian1d(TextureView tex, float2 uv, float sigma, int radius, bo
         weightSum += 2.0 * w_combined;
     }
 
-    // If radius is odd, one texel remains uncovered
+    // Odd radius: cover the leftover texel.
     if ((radius & 1) != 0 && radius > 0)
     {
         float w = GaussianWeight1d(radius, sigma);

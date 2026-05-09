@@ -1,7 +1,6 @@
 implementing vekl;
 
-// Catmull-Rom cubic B-spline weights: four taps centered at the nearest
-// texel, producing a sharper reconstruction than bilinear without ringing.
+// Catmull-Rom cubic B-spline weights: 4 taps centered at the nearest texel; sharper than bilinear without ringing.
 internal float4 CubicWeights(float v)
 {
     float4 n = float4(1.0, 2.0, 3.0, 4.0) - v;
@@ -13,10 +12,9 @@ internal float4 CubicWeights(float v)
     return float4(x, y, z, w) * (1.0 / 6.0);
 }
 
-/// Bicubic (Catmull-Rom) sampler. Reads 4 texels via 4 bilinear taps using
-/// the classic "weight-fold" trick — costs one bilinear fetch per axis pair
-/// instead of the naive 16 taps. Prefer over `SampleLinear` when reconstructing
-/// a soft signal (upsampling, bicubic-interpolated warp fields, etc.).
+/// Bicubic (Catmull-Rom) sampler. 4 bilinear taps via the weight-fold trick
+/// instead of 16 raw fetches. Use over `SampleLinear` when reconstructing soft
+/// signals (upsampling, bicubic warp fields).
 public float4 SampleBicubic(TextureView tex, float2 uv)
 {
     uint2 sizePx = tex.Size();

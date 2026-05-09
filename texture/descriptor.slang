@@ -22,10 +22,8 @@ public enum AddressMode : uint
     Mirror = 2,
 }
 
-/// Cap on the mip level count carried in `TextureDesc`. Must match the
-/// host-side `MAX_MIP` constant in prgpu's `types::config`. Five levels
-/// cover 1/16 per axis which is deep enough for any sweep / blur pyramid;
-/// it keeps the descriptor small (four `uint[5]` arrays = 80 extra bytes).
+/// Cap on `TextureDesc` mip levels. Must equal prgpu's host-side `MAX_MIP`.
+/// Five levels covers 1/16 per axis.
 public static const uint MAX_MIP = 5u;
 
 public struct TextureDesc
@@ -38,11 +36,9 @@ public struct TextureDesc
     public PixelLayout layout;
     public AddressMode addressMode;
 
-    // Mip-chain metadata. `mipLevelCount >= 1`; entries beyond that are
-    // undefined. Level 0 mirrors `width / height / pitchBytes` above.
-    // The host fills these whenever it allocates a mip-chain buffer.
-    // Effects that never request mips see `mipLevelCount == 1` and can
-    // ignore these fields entirely.
+    // Mip-chain metadata. `mipLevelCount >= 1`; entries past it are undefined.
+    // Level 0 mirrors `width / height / pitchBytes` above. Effects that don't
+    // request mips see `mipLevelCount == 1` and can ignore these fields.
     public uint mipLevelCount;
     public uint mipOffsetBytes[MAX_MIP];
     public uint mipWidth[MAX_MIP];

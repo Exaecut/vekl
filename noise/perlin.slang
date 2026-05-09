@@ -1,6 +1,5 @@
 implementing vekl;
 
-// --- Internal helpers ---
 
 float2 Hash2(float2 p, float2 seed)
 {
@@ -47,7 +46,6 @@ float ScalarNoise(float2 p, float2 seed)
     return lerp(nx0, nx1, u.y);
 }
 
-// --- Public API ---
 
 public float PerlinNoise(float2 p, float2 seed)
 {

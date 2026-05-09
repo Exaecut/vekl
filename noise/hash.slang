@@ -1,23 +1,17 @@
 implementing vekl;
 
-// Cheap hash-based value noise. Pairs well with analog / glitch styles
-// (VHS, CRT, film grain) where speckled, slightly aliased noise is
-// desirable. Prefer [`PerlinNoise`] (smooth gradient) when aliasing would
-// distract — Perlin is ~2× more expensive but free of the "sin-fract"
-// streakiness near cardinal angles.
+// Hash-based value noise. Cheap and aliased; pairs well with VHS / CRT / film
+// grain styles. Prefer `PerlinNoise` (smooth gradient) when aliasing would
+// distract — Perlin is ~2× more expensive but free of "sin-fract" streakiness.
 
-/// Scalar hash from a 2D coordinate in `[0, 1)`. Deterministic, cheap,
-/// and good enough for stylistic noise. Not suitable for Monte-Carlo
-/// sampling or cryptography.
+/// Cheap deterministic scalar hash from a 2D coordinate in `[0, 1)`. Stylistic noise only — not for Monte Carlo or crypto.
 public float Hash21(float2 p)
 {
     return frac(sin(dot(p, float2(127.1, 311.7))) * 43758.5453);
 }
 
-/// Smoothstep-interpolated value noise on an integer lattice. `lattice`
-/// controls the cell grid (e.g. `float2(8.0, 8.0)` = 8×8 cells across
-/// `p ∈ [0, 1)`). Higher → finer detail; use [`HashFbm`] to stack
-/// multiple scales.
+/// Smoothstep value noise on an integer lattice. `lattice` controls the cell
+/// grid (e.g. `float2(8, 8)` = 8×8 cells over `[0, 1)`); stack via `HashFbm`.
 public float HashValueNoise(float2 p, float2 lattice)
 {
     float2 pl = p * lattice;
@@ -32,9 +26,8 @@ public float HashValueNoise(float2 p, float2 lattice)
     return lerp(lerp(h00, h10, ip.x), lerp(h01, h11, ip.x), ip.y);
 }
 
-/// Multi-octave hash value noise (fractional Brownian motion). `octaves`
-/// copies of [`HashValueNoise`] are stacked at `lattice = 2 * 2^i` with
-/// amplitude `1/2^i`. The output range is approximately `[0, 1]`.
+/// Multi-octave hash value noise (fBm). `octaves` copies stacked at
+/// `lattice = 2 * 2^i` with amplitude `1/2^i`. Output ≈ `[0, 1]`.
 public float HashFbm(float2 p, int octaves)
 {
     float sum = 0.0;
