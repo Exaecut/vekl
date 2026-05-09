@@ -45,14 +45,21 @@ See [`descriptor.md`](descriptor.md) for the chain layout.
 | `SampleLinear(lod)` | `float4 SampleLinear(float2 uv, uint lod)` | Bilinear sample on a specific level, clamp-addressed |
 | `SampleLinearTrilinear` | `float4 SampleLinearTrilinear(float2 uv, float lodF)` | Trilinear sample — lerps between `floor(lodF)` and `ceil(lodF)`. Use this to pick a continuous lod per pixel (pyramidal blur / glow). |
 
-Example — pick a lod from a per-pixel trail length:
+Example — pick a lod from a per-pixel trail length using the
+[`PickSweepLod`](../sampling/radial.md#picksweeplod) helper, then sample
+trilinearly so two adjacent output pixels at slightly different lods
+cross-fade instead of cutting:
 
 ```cpp
-// trail_px is the screen-space length this pixel sweeps over; lower-res
-// mips are sampled when the trail exceeds the Nyquist of level 0.
-float lodF = clamp(log2(trail_px / 16.0), 0.0, float(src.desc.mipLevelCount - 1u));
-float4 c = src.SampleLinearTrilinear(uv, lodF);
+uint  maxLod = max(src.desc.mipLevelCount, 1u) - 1u;
+float lodF   = PickSweepLod(trail_px, sampleCount, maxLod);
+float4 c     = src.SampleLinearTrilinear(uv, lodF);
 ```
+
+`PickSweepLod` keeps `lodF` at `0` whenever the kernel has enough taps
+to cover the trail at full resolution; trilinear sampling smooths the
+transition once it ramps up. Together they produce an aliasing-free,
+seam-free pyramid sample with no host-side tuning per effect.
 
 ---
 

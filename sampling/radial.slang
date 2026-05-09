@@ -222,3 +222,77 @@ public float2 PixelAspectAnisotropy(uint2 sizePx)
     float a = float(sizePx.x) / float(sizePx.y);
     return (a > 1.0) ? float2(1.0, a) : float2(1.0 / a, 1.0);
 }
+
+// --- Pyramidal sampling ------------------------------------------------------
+//
+// Multi-tap sweeps (radial blur, motion blur, lens streaks, glow trails…)
+// cover a per-pixel "trail length" in source pixels. When that trail is
+// longer than the kernel's sample budget, naive level-0 sampling aliases —
+// each tap skips multiple source pixels and high-frequency content leaks
+// through. The textbook fix is to sample a downsampled (mip) version where
+// the trail is shorter relative to the budget.
+//
+// `PickSweepLod` does that selection analytically and pairs with
+// `TextureView.SampleLinearTrilinear(uv, lodF)` for hard-cut-free mip
+// transitions:
+//
+//     uint  maxLod = max(frame.outDesc.mipLevelCount, 1u) - 1u;
+//     float lodF   = PickSweepLod(trailPx, opts.sampleCount, maxLod);
+//     // ... in the sweep loop:
+//     acc.Add(src.SampleLinearTrilinear(sUv, lodF), s.weight);
+//
+// That single fractional lod is shared by every tap of the same output
+// pixel — picking it per-pixel (not per-tap) keeps the chosen mip stable
+// across the trail so neighboring taps don't disagree on the source.
+
+/// Pick a continuous mip lod for a sweep / multi-tap blur kernel
+/// (oversampled overload — see the 3-arg version for the Nyquist default).
+///
+/// `oversample` controls the perf-vs-detail trade-off — it sets how many
+/// taps per source pixel of trail the kernel aims for at the chosen lod:
+///
+///   * `oversample = 1.0` → Nyquist (1 tap per source pixel of trail).
+///     Sharpest result; the kernel runs at full sample budget on long trails.
+///     Use when image quality dominates the cost.
+///   * `oversample = 4.0` → 4× oversampled (~25% of Nyquist's tap count
+///     because the lod ramps up `log2(4) = 2` levels earlier). Smoother
+///     than Nyquist and ~4× cheaper for the same kernel; recommended for
+///     real-time sweeps. Detail is reduced compared to Nyquist but stays
+///     far better than fixed trail-px heuristics.
+///   * `oversample = 0.5` → undersampled (lod stays sharp longer at the
+///     cost of mild aliasing). Use when a tap budget is *known* to be
+///     much higher than the trail demands.
+///
+/// Formula: `lodF = max(0, log2(oversample · trailPx / sampleCount))`,
+/// clamped to `[0, maxLod]`. Pair with
+/// `TextureView.SampleLinearTrilinear(uv, lodF)` for hard-cut-free
+/// transitions between mip levels.
+///
+/// Inputs:
+///   trailPx     : worst-case trail length covered at this output pixel,
+///                 in source pixels (lod-0 units). Must be non-negative.
+///   sampleCount : number of taps the kernel will loop over for this
+///                 pixel (or the frame-wide budget — pass `opts.sampleCount`).
+///                 Values `<= 1` short-circuit to lod 0.
+///   maxLod      : highest available lod (typically `mipLevelCount - 1`).
+///                 0 means "no mip chain" → always lod 0.
+///   oversample  : taps per source pixel of trail at the chosen lod.
+///                 `> 0`. Defaults to `1.0` in the 3-arg overload.
+///
+/// Output: lodF in [0, maxLod]. Pass directly to `SampleLinearTrilinear`.
+public float PickSweepLod(float trailPx, uint sampleCount, uint maxLod, float oversample)
+{
+    if (sampleCount <= 1u || maxLod == 0u || !(trailPx > 0.0) || !(oversample > 0.0))
+        return 0.0;
+    float lodF = log2(oversample * trailPx / float(sampleCount));
+    return clamp(lodF, 0.0, float(maxLod));
+}
+
+/// Convenience overload: Nyquist (`oversample = 1.0`). Sharpest result,
+/// most expensive on long trails. Most callers should use the 4-arg
+/// overload with `oversample = 4.0` for a balanced default — see the
+/// 4-arg version's doc for the cost / detail trade-off.
+public float PickSweepLod(float trailPx, uint sampleCount, uint maxLod)
+{
+    return PickSweepLod(trailPx, sampleCount, maxLod, 1.0);
+}
