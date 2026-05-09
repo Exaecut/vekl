@@ -12,11 +12,11 @@ import vekl;
 | Concern | Files | Description |
 |---------|-------|-------------|
 | [texture](texture/) | `descriptor.slang`, `format.slang`, `view.slang` | Enums, descriptors, pixel I/O, texture views |
-| [sampling](sampling/) | `coordinate.slang` | UV coordinate utilities |
+| [sampling](sampling/) | `coordinate.slang`, `bicubic.slang`, `radial.slang` | UV utilities, bicubic reconstruction, sweep / pyramid sampling |
 | [math](math/) | `mask.slang` | Distance masks |
 | [filter](filter/) | `gaussian.slang` | Gaussian blur |
-| [noise](noise/) | `perlin.slang`, `fbm.slang` | Perlin noise and FBM |
-| [color](color/) | `blend/add.slang`, `blend/multiply.slang` | Blend modes |
+| [noise](noise/) | `perlin.slang`, `fbm.slang`, `hash.slang` | Perlin noise, FBM, and stateless hash primitives |
+| [color](color/) | `blend/dispatch.slang`, `accumulate.slang`, `yiq.slang` | Blend mode dispatcher, chroma-correct accumulators, YIQ color space |
 
 ## Standard Kernel Signature
 
