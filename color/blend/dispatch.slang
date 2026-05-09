@@ -1,24 +1,27 @@
 implementing vekl;
 
 // Mode discriminants — must match prgpu::ui::blend_mode::BlendMode.
-public static const uint BLEND_NORMAL       = 0;
-public static const uint BLEND_ADD          = 1;
-public static const uint BLEND_MULTIPLY     = 2;
-public static const uint BLEND_SCREEN       = 3;
-public static const uint BLEND_COLOR_BURN   = 4;
-public static const uint BLEND_COLOR_DODGE  = 5;
-public static const uint BLEND_DARKER_COLOR = 6;
-public static const uint BLEND_OVERLAY      = 7;
-public static const uint BLEND_DIFFERENCE   = 8;
-public static const uint BLEND_SUBTRACT     = 9;
-public static const uint BLEND_DIVIDE       = 10;
-public static const uint BLEND_HUE          = 11;
-public static const uint BLEND_SATURATION   = 12;
-public static const uint BLEND_COLOR        = 13;
-public static const uint BLEND_LUMINOSITY   = 14;
+// Values are 0-based selected-indexes matching the `popup(V)` extractor
+// in prgpu::kernel_params! and `BLEND_MODE_OPTIONS[k]` in prgpu.
+public static const uint BLEND_ADD          = 0;
+public static const uint BLEND_MULTIPLY     = 1;
+public static const uint BLEND_SCREEN       = 2;
+public static const uint BLEND_COLOR_BURN   = 3;
+public static const uint BLEND_COLOR_DODGE  = 4;
+public static const uint BLEND_DARKER_COLOR = 5;
+public static const uint BLEND_OVERLAY      = 6;
+public static const uint BLEND_DIFFERENCE   = 7;
+public static const uint BLEND_SUBTRACT     = 8;
+public static const uint BLEND_DIVIDE       = 9;
+public static const uint BLEND_HUE          = 10;
+public static const uint BLEND_SATURATION   = 11;
+public static const uint BLEND_COLOR        = 12;
+public static const uint BLEND_LUMINOSITY   = 13;
 
 /// Apply blend mode `mode` to (base, blend). Unknown modes return `blend`
-/// (Normal). Strength/alpha mixing is the caller's responsibility.
+/// unchanged (pass-through). Strength / alpha mixing is the caller's
+/// responsibility — fade between `base` and the returned value with a
+/// user-facing strength slider.
 public float3 BlendApply(uint mode, float3 base, float3 blend)
 {
     switch (mode)
