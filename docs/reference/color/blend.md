@@ -42,9 +42,18 @@ dedicated "no blend" mode.
 
 ## Mode discriminants
 
-The `BLEND_*` constants in `color/blend/dispatch.slang` are **0-based**
-selected-indexes. They match `BLEND_MODE_OPTIONS[k]` in prgpu and the value
-the `popup(V)` extractor in `prgpu::kernel_params!` delivers to your kernel.
+The `BLEND_*` constants are **0-based selected-indexes**. The same number
+shows up in three other places — pick whichever reads best at the call
+site:
+
+* The `prgpu::ui::BlendMode` Rust enum (`BlendMode::Multiply as u32 == 1`).
+* The popup option list `prgpu::ui::BLEND_MODE_OPTIONS[k]`
+  (`BLEND_MODE_OPTIONS[1] == "Multiply"`).
+* The `u32` your kernel reads via `popup(V)` in `prgpu::kernel_params!`.
+
+There is no `Normal` sentinel — express "no blend / pass-through" with a
+strength slider that fades `base` toward the blended result, never with a
+dedicated mode value.
 
 | Constant            | u32 | Popup option (`prgpu::ui::BLEND_MODE_OPTIONS[k]`) |
 |---------------------|-----|---------------------------------------------------|
