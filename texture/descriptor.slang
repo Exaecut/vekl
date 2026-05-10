@@ -23,8 +23,8 @@ public enum AddressMode : uint
 }
 
 /// Cap on `TextureDesc` mip levels. Must equal prgpu's host-side `MAX_MIP`.
-/// Five levels covers 1/16 per axis.
-public static const uint MAX_MIP = 5u;
+/// Seven levels covers 1/64 per axis.
+public static const uint MAX_MIP = 7u;
 
 public struct TextureDesc
 {
