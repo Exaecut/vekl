@@ -2,6 +2,7 @@ implementing vekl;
 
 __include "color/accumulate";
 __include "color/yiq";
+__include "color/oklab";
 
 __include "color/blend/add";
 __include "color/blend/multiply";
