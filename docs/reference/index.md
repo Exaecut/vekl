@@ -16,7 +16,7 @@ import vekl;
 | [math](math/) | `mask.slang` | Distance masks |
 | [filter](filter/) | `gaussian.slang` | Gaussian blur |
 | [noise](noise/) | `perlin.slang`, `fbm.slang`, `hash.slang` | Perlin noise, FBM, and stateless hash primitives |
-| [color](color/) | `blend/dispatch.slang`, `accumulate.slang`, `yiq.slang` | Blend mode dispatcher, chroma-correct accumulators, YIQ color space |
+| [color](color/) | `blend/dispatch.slang`, `accumulate.slang`, `yiq.slang`, `oklab.slang` | Blend mode dispatcher, chroma-correct accumulators, YIQ + Oklab color spaces |
 
 ## Standard Kernel Signature
 
