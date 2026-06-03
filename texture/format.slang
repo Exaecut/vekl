@@ -97,6 +97,17 @@ float4 LoadPixelRaw(StructuredBuffer<uint> data, uint pitchBytes, uint2 xy, uint
             float(hi >> 16) / 65535.0
         );
     }
+    else if (storage == PixelStorage.Float16x4)
+    {
+        uint lo = data[wordOffset];
+        uint hi = data[wordOffset + 1];
+        return float4(
+            f16tof32(lo & 0xFFFF),
+            f16tof32(lo >> 16),
+            f16tof32(hi & 0xFFFF),
+            f16tof32(hi >> 16)
+        );
+    }
     else
     {
         uint w0 = data[wordOffset];
@@ -138,6 +149,17 @@ float4 LoadPixelRaw(RWStructuredBuffer<uint> data, uint pitchBytes, uint2 xy, ui
             float(hi >> 16) / 65535.0
         );
     }
+    else if (storage == PixelStorage.Float16x4)
+    {
+        uint lo = data[wordOffset];
+        uint hi = data[wordOffset + 1];
+        return float4(
+            f16tof32(lo & 0xFFFF),
+            f16tof32(lo >> 16),
+            f16tof32(hi & 0xFFFF),
+            f16tof32(hi >> 16)
+        );
+    }
     else
     {
         uint w0 = data[wordOffset];
@@ -172,6 +194,11 @@ void StorePixelRaw(RWStructuredBuffer<uint> data, uint pitchBytes, uint2 xy, flo
                               | (uint(saturate(c.y) * 65535.0) << 16);
         data[wordOffset + 1] = (uint(saturate(c.z) * 65535.0))
                               | (uint(saturate(c.w) * 65535.0) << 16);
+    }
+    else if (storage == PixelStorage.Float16x4)
+    {
+        data[wordOffset]     = (f32tof16(c.x) & 0xFFFFu) | (f32tof16(c.y) << 16);
+        data[wordOffset + 1] = (f32tof16(c.z) & 0xFFFFu) | (f32tof16(c.w) << 16);
     }
     else
     {

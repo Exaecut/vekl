@@ -5,6 +5,7 @@ public enum PixelStorage : uint
     Unorm8x4  = 0,
     Unorm16x4 = 1,
     Float32x4 = 2,
+    Float16x4 = 3,
 }
 
 public enum PixelLayout : uint
