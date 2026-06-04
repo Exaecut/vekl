@@ -101,7 +101,7 @@ internal float Redistribute(float t, SampleDistribution dist)
 }
 
 /// Per-distribution natural weight at `t`. Caller normalizes by the running sum.
-internal float NaturalWeight(float t, SampleDistribution dist)
+public float NaturalWeight(float t, SampleDistribution dist)
 {
     switch (dist)
     {
