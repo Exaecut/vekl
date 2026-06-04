@@ -270,8 +270,10 @@ uint2 AddressXY(uint2 xy, uint2 sizePx, AddressMode mode)
     return AddressClamp(xy, sizePx);
 }
 
-public float4 LoadPixelSafe(StructuredBuffer<uint> data, uint pitchBytes, uint2 xy, uint2 sizePx, uint bytesPerPixel, PixelStorage storage, PixelLayout layout, AddressMode address)
+public float4 LoadPixelSafe(StructuredBuffer<uint> data, uint pitchBytes, uint2 xy, uint2 sizePx, uint bytesPerPixel, PixelStorage storage, PixelLayout layout, AddressMode address, uint flipY)
 {
     uint2 addr = AddressXY(xy, sizePx, address);
+    if (flipY != 0u && sizePx.y > 0u)
+        addr.y = sizePx.y - 1u - addr.y;
     return LoadPixel(data, pitchBytes, addr, bytesPerPixel, storage, layout);
 }

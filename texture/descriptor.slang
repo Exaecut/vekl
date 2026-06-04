@@ -36,6 +36,9 @@ public struct TextureDesc
     public PixelStorage storage;
     public PixelLayout layout;
     public AddressMode addressMode;
+    // 0 = top-down (row 0 = top). 1 = bottom-up host buffer (Premiere CPU): the
+    // sampler maps row 0 to the last memory row so UV stays top-left like the GPU.
+    public uint flipY;
 
     // Mip-chain metadata. `mipLevelCount >= 1`; entries past it are undefined.
     // Level 0 mirrors `width / height / pitchBytes` above. Effects that don't

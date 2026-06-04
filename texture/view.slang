@@ -6,6 +6,17 @@ uint MipLod(TextureDesc desc, uint lod)
     return min(lod, max(desc.mipLevelCount, 1u) - 1u);
 }
 
+// Resolve a top-left pixel coordinate to the physical buffer row. For a
+// bottom-up host buffer (`desc.flipY == 1`, e.g. Premiere CPU) row 0 maps to
+// the last memory row, so reads, writes and procedural UV all stay top-left and
+// match the GPU path. `heightPx` is the height of the level being accessed.
+uint2 FlipY(TextureDesc desc, uint2 px, uint heightPx)
+{
+    if (desc.flipY != 0u && heightPx > 0u)
+        px.y = heightPx - 1u - px.y;
+    return px;
+}
+
 public struct TextureView
 {
     public StructuredBuffer<uint> buffer;
@@ -35,26 +46,26 @@ public struct TextureView
 
     public float4 Load(uint2 pixel)
     {
-        return LoadPixel(buffer, desc.pitchBytes, pixel, desc.bytesPerPixel, desc.storage, desc.layout);
+        return LoadPixel(buffer, desc.pitchBytes, FlipY(desc, pixel, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
     }
 
     public float4 Load(uint2 pixel, uint lod)
     {
         uint l = MipLod(desc, lod);
         uint baseWords = desc.mipOffsetBytes[l] / 4u;
-        return LoadPixel(buffer, desc.mipPitchBytes[l], pixel, desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
+        return LoadPixel(buffer, desc.mipPitchBytes[l], FlipY(desc, pixel, desc.mipHeight[l]), desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
     }
 
     public float4 LoadSafe(uint2 pixel)
     {
-        return LoadPixelSafe(buffer, desc.pitchBytes, pixel, Size(), desc.bytesPerPixel, desc.storage, desc.layout, desc.addressMode);
+        return LoadPixelSafe(buffer, desc.pitchBytes, pixel, Size(), desc.bytesPerPixel, desc.storage, desc.layout, desc.addressMode, desc.flipY);
     }
 
     public float4 SampleNearest(float2 uv)
     {
         float2 nearestF = PixelCoord(uv, Size()) + 0.5;
         uint2 xy = AddressClamp(uint2(int2(nearestF)), Size());
-        return LoadPixel(buffer, desc.pitchBytes, xy, desc.bytesPerPixel, desc.storage, desc.layout);
+        return LoadPixel(buffer, desc.pitchBytes, FlipY(desc, xy, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
     }
 
     public float4 SampleLinear(float2 uv)
@@ -70,10 +81,10 @@ public struct TextureView
         uint2 xy01 = AddressClamp(ipf + uint2(0, 1), sizePx);
         uint2 xy11 = AddressClamp(ipf + uint2(1, 1), sizePx);
 
-        float4 c00 = LoadPixel(buffer, desc.pitchBytes, xy00, desc.bytesPerPixel, desc.storage, desc.layout);
-        float4 c10 = LoadPixel(buffer, desc.pitchBytes, xy10, desc.bytesPerPixel, desc.storage, desc.layout);
-        float4 c01 = LoadPixel(buffer, desc.pitchBytes, xy01, desc.bytesPerPixel, desc.storage, desc.layout);
-        float4 c11 = LoadPixel(buffer, desc.pitchBytes, xy11, desc.bytesPerPixel, desc.storage, desc.layout);
+        float4 c00 = LoadPixel(buffer, desc.pitchBytes, FlipY(desc, xy00, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
+        float4 c10 = LoadPixel(buffer, desc.pitchBytes, FlipY(desc, xy10, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
+        float4 c01 = LoadPixel(buffer, desc.pitchBytes, FlipY(desc, xy01, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
+        float4 c11 = LoadPixel(buffer, desc.pitchBytes, FlipY(desc, xy11, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
 
         float4 cx0 = lerp(c00, c10, f.x);
         float4 cx1 = lerp(c01, c11, f.x);
@@ -97,10 +108,10 @@ public struct TextureView
         uint2 xy01 = AddressClamp(ipf + uint2(0, 1), sizePx);
         uint2 xy11 = AddressClamp(ipf + uint2(1, 1), sizePx);
 
-        float4 c00 = LoadPixel(buffer, pitch, xy00, desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
-        float4 c10 = LoadPixel(buffer, pitch, xy10, desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
-        float4 c01 = LoadPixel(buffer, pitch, xy01, desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
-        float4 c11 = LoadPixel(buffer, pitch, xy11, desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
+        float4 c00 = LoadPixel(buffer, pitch, FlipY(desc, xy00, sizePx.y), desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
+        float4 c10 = LoadPixel(buffer, pitch, FlipY(desc, xy10, sizePx.y), desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
+        float4 c01 = LoadPixel(buffer, pitch, FlipY(desc, xy01, sizePx.y), desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
+        float4 c11 = LoadPixel(buffer, pitch, FlipY(desc, xy11, sizePx.y), desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
 
         float4 cx0 = lerp(c00, c10, f.x);
         float4 cx1 = lerp(c01, c11, f.x);
@@ -135,10 +146,10 @@ public struct TextureView
         uint2 xy01 = AddressRepeat(ipf + uint2(0, 1), sizePx);
         uint2 xy11 = AddressRepeat(ipf + uint2(1, 1), sizePx);
 
-        float4 c00 = LoadPixel(buffer, desc.pitchBytes, xy00, desc.bytesPerPixel, desc.storage, desc.layout);
-        float4 c10 = LoadPixel(buffer, desc.pitchBytes, xy10, desc.bytesPerPixel, desc.storage, desc.layout);
-        float4 c01 = LoadPixel(buffer, desc.pitchBytes, xy01, desc.bytesPerPixel, desc.storage, desc.layout);
-        float4 c11 = LoadPixel(buffer, desc.pitchBytes, xy11, desc.bytesPerPixel, desc.storage, desc.layout);
+        float4 c00 = LoadPixel(buffer, desc.pitchBytes, FlipY(desc, xy00, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
+        float4 c10 = LoadPixel(buffer, desc.pitchBytes, FlipY(desc, xy10, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
+        float4 c01 = LoadPixel(buffer, desc.pitchBytes, FlipY(desc, xy01, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
+        float4 c11 = LoadPixel(buffer, desc.pitchBytes, FlipY(desc, xy11, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
 
         float4 cx0 = lerp(c00, c10, f.x);
         float4 cx1 = lerp(c01, c11, f.x);
@@ -183,25 +194,25 @@ public struct RWTextureView
 
     public float4 Load(uint2 pixel)
     {
-        return LoadPixel(buffer, desc.pitchBytes, pixel, desc.bytesPerPixel, desc.storage, desc.layout);
+        return LoadPixel(buffer, desc.pitchBytes, FlipY(desc, pixel, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
     }
 
     public float4 Load(uint2 pixel, uint lod)
     {
         uint l = MipLod(desc, lod);
         uint baseWords = desc.mipOffsetBytes[l] / 4u;
-        return LoadPixel(buffer, desc.mipPitchBytes[l], pixel, desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
+        return LoadPixel(buffer, desc.mipPitchBytes[l], FlipY(desc, pixel, desc.mipHeight[l]), desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
     }
 
     public void Store(uint2 pixel, float4 value)
     {
-        StorePixel(buffer, desc.pitchBytes, pixel, value, desc.bytesPerPixel, desc.storage, desc.layout);
+        StorePixel(buffer, desc.pitchBytes, FlipY(desc, pixel, desc.height), value, desc.bytesPerPixel, desc.storage, desc.layout);
     }
 
     public void Store(uint2 pixel, float4 value, uint lod)
     {
         uint l = MipLod(desc, lod);
         uint baseWords = desc.mipOffsetBytes[l] / 4u;
-        StorePixel(buffer, desc.mipPitchBytes[l], pixel, value, desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
+        StorePixel(buffer, desc.mipPitchBytes[l], FlipY(desc, pixel, desc.mipHeight[l]), value, desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
     }
 }
