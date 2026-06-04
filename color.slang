@@ -5,6 +5,7 @@ __include "color/yiq";
 __include "color/space";
 __include "color/premul";
 __include "color/oklab";
+__include "color/spectral";
 
 __include "color/blend/add";
 __include "color/blend/multiply";
