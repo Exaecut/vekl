@@ -64,7 +64,7 @@ public struct TextureView
     public float4 SampleNearest(float2 uv)
     {
         float2 nearestF = PixelCoord(uv, Size()) + 0.5;
-        uint2 xy = AddressClamp(uint2(int2(nearestF)), Size());
+        uint2 xy = AddressClamp(int2(floor(nearestF)), Size());
         return LoadPixel(buffer, desc.pitchBytes, FlipY(desc, xy, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
     }
 
@@ -75,11 +75,11 @@ public struct TextureView
         float2 pf = floor(p);
         float2 f = clamp(p - pf, 0.0, 1.0);
 
-        uint2 ipf = uint2(pf);
+        int2 ipf = int2(pf);
         uint2 xy00 = AddressClamp(ipf, sizePx);
-        uint2 xy10 = AddressClamp(ipf + uint2(1, 0), sizePx);
-        uint2 xy01 = AddressClamp(ipf + uint2(0, 1), sizePx);
-        uint2 xy11 = AddressClamp(ipf + uint2(1, 1), sizePx);
+        uint2 xy10 = AddressClamp(ipf + int2(1, 0), sizePx);
+        uint2 xy01 = AddressClamp(ipf + int2(0, 1), sizePx);
+        uint2 xy11 = AddressClamp(ipf + int2(1, 1), sizePx);
 
         float4 c00 = LoadPixel(buffer, desc.pitchBytes, FlipY(desc, xy00, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
         float4 c10 = LoadPixel(buffer, desc.pitchBytes, FlipY(desc, xy10, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
@@ -102,11 +102,11 @@ public struct TextureView
         float2 pf = floor(p);
         float2 f = clamp(p - pf, 0.0, 1.0);
 
-        uint2 ipf = uint2(pf);
+        int2 ipf = int2(pf);
         uint2 xy00 = AddressClamp(ipf, sizePx);
-        uint2 xy10 = AddressClamp(ipf + uint2(1, 0), sizePx);
-        uint2 xy01 = AddressClamp(ipf + uint2(0, 1), sizePx);
-        uint2 xy11 = AddressClamp(ipf + uint2(1, 1), sizePx);
+        uint2 xy10 = AddressClamp(ipf + int2(1, 0), sizePx);
+        uint2 xy01 = AddressClamp(ipf + int2(0, 1), sizePx);
+        uint2 xy11 = AddressClamp(ipf + int2(1, 1), sizePx);
 
         float4 c00 = LoadPixel(buffer, pitch, FlipY(desc, xy00, sizePx.y), desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
         float4 c10 = LoadPixel(buffer, pitch, FlipY(desc, xy10, sizePx.y), desc.bytesPerPixel, desc.storage, desc.layout, baseWords);
@@ -140,11 +140,11 @@ public struct TextureView
         float2 pf = floor(p);
         float2 f = clamp(p - pf, 0.0, 1.0);
 
-        uint2 ipf = uint2(pf);
+        int2 ipf = int2(pf);
         uint2 xy00 = AddressRepeat(ipf, sizePx);
-        uint2 xy10 = AddressRepeat(ipf + uint2(1, 0), sizePx);
-        uint2 xy01 = AddressRepeat(ipf + uint2(0, 1), sizePx);
-        uint2 xy11 = AddressRepeat(ipf + uint2(1, 1), sizePx);
+        uint2 xy10 = AddressRepeat(ipf + int2(1, 0), sizePx);
+        uint2 xy01 = AddressRepeat(ipf + int2(0, 1), sizePx);
+        uint2 xy11 = AddressRepeat(ipf + int2(1, 1), sizePx);
 
         float4 c00 = LoadPixel(buffer, desc.pitchBytes, FlipY(desc, xy00, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);
         float4 c10 = LoadPixel(buffer, desc.pitchBytes, FlipY(desc, xy10, desc.height), desc.bytesPerPixel, desc.storage, desc.layout);

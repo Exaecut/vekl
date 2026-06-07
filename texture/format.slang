@@ -249,9 +249,27 @@ uint2 AddressClamp(uint2 xy, uint2 sizePx)
     return clamp(xy, uint2(0, 0), sizePx - uint2(1, 1));
 }
 
+// Signed overload. `floor(uv*size - 0.5)` is negative for any sample within
+// half a texel of the top/left edge (and for off-image taps); converting that
+// to `uint` first is undefined and diverges across Metal/CUDA, so clamp in
+// signed space *before* the cast. Callers pass `int2(floor(p))` directly.
+uint2 AddressClamp(int2 xy, uint2 sizePx)
+{
+    int2 maxXY = int2(sizePx) - int2(1, 1);
+    return uint2(clamp(xy, int2(0, 0), maxXY));
+}
+
 uint2 AddressRepeat(uint2 xy, uint2 sizePx)
 {
     return xy % sizePx;
+}
+
+// Signed overload: floored mod keeps negative coordinates wrapping to the high
+// edge instead of casting to a huge `uint` first.
+uint2 AddressRepeat(int2 xy, uint2 sizePx)
+{
+    int2 s = max(int2(sizePx), int2(1, 1));
+    return uint2(((xy % s) + s) % s);
 }
 
 uint2 AddressMirror(uint2 xy, uint2 sizePx)
