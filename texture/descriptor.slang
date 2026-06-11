@@ -59,4 +59,14 @@ public struct FrameParams
     public uint height;
     public float time;
     public float progress;
+    // Canvas sampling contract: the source's top-left sits at (extX, extY)
+    // inside the (canvasWidth x canvasHeight) output frame; p_src = p_out - ext.
+    // Identity when canvas == layer (AE clip space). Must stay byte-equal with
+    // prgpu's Rust FrameParams.
+    public uint canvasWidth;
+    public uint canvasHeight;
+    public uint layerWidth;
+    public uint layerHeight;
+    public int  extX;
+    public int  extY;
 }
