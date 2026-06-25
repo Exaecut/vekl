@@ -6,3 +6,4 @@ __include "math";
 __include "filter";
 __include "noise";
 __include "color";
+__include "text";
